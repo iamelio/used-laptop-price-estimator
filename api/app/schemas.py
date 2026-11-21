@@ -32,7 +32,10 @@ class LaptopSpecs(_Strict):
     model_name: str | None = Field(
         default=None,
         max_length=80,
-        description="Free text such as 'XPS 13'. Shown on the slip; not a model feature unless the model adds it.",
+        description=(
+            "Free text such as 'XPS 13'. The trained model reads the product line from it "
+            "(ROG, ThinkPad, MacBook Air and so on)."
+        ),
     )
     laptop_type: str = Field(min_length=1, examples=["Ultrabook"])
     year: int = Field(ge=2005, le=2100, description="Year the laptop came out.")

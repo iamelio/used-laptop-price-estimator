@@ -1,0 +1,5 @@
+-r ../api/requirements.txt
+pandas>=2.2
+scikit-learn>=1.6
+optuna>=4.0
+xgboost>=2.1

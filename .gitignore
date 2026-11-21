@@ -7,3 +7,4 @@ dist/
 .DS_Store
 model/artifacts/*
 !model/artifacts/.gitkeep
+model/data/

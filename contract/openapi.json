@@ -356,7 +356,7 @@
               }
             ],
             "title": "Model Name",
-            "description": "Free text such as 'XPS 13'. Shown on the slip; not a model feature unless the model adds it."
+            "description": "Free text such as 'XPS 13'. The trained model reads the product line from it (ROG, ThinkPad, MacBook Air and so on)."
           },
           "laptop_type": {
             "type": "string",

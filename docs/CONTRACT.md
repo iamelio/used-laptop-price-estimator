@@ -35,7 +35,7 @@ Bad requests get a `422`. Unknown fields are rejected, so a typo fails loudly in
 | Field | Type | Notes |
 |---|---|---|
 | `brand` | string | One of `options.brands`. |
-| `model_name` | string or null | Free text such as "XPS 13". Display only. |
+| `model_name` | string or null | Free text such as "XPS 13". The trained model reads the product line from it (ROG, ThinkPad, MacBook Air and so on), so filling it in sharpens the price. Null is fine. |
 | `laptop_type` | string | One of `options.laptop_types`. |
 | `year` | int | Between `options.year_min` and `options.year_max`. |
 | `cpu` | string | One of `options.cpus`. |
