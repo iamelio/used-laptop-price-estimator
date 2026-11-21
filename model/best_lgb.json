@@ -1,0 +1,23 @@
+{
+  "params": {
+    "learning_rate": 0.010921967966202017,
+    "num_leaves": 20,
+    "max_depth": 5,
+    "min_data_in_leaf": 2,
+    "feature_fraction": 0.7334918520063601,
+    "bagging_fraction": 0.8352496651971002,
+    "lambda_l1": 0.0003703426578689077,
+    "lambda_l2": 0.002006968606554485,
+    "min_gain_to_split": 0.02878539858433173,
+    "cat_smooth": 1.5694772635246248,
+    "cat_l2": 28.073311986575778,
+    "min_data_per_group": 20,
+    "max_cat_threshold": 34,
+    "objective": "fair"
+  },
+  "rounds": 1703,
+  "mae": 373318.5490550775,
+  "r2": 0.8439301099162749,
+  "rmsle": 0.22129669850454486,
+  "seeds": 5
+}
