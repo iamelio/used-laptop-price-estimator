@@ -4,6 +4,10 @@ Prices a used laptop in naira and explains the price line by line, printed as a 
 
 To see the design, open [`design/appraisal-slip.html`](design/appraisal-slip.html) in a browser. It's a working prototype, with the slip updating live as you change answers.
 
+To walk through the data and the model step by step, open the notebook in Google Colab:
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/iamelio/used-laptop-price-estimator/blob/main/notebooks/laptop_price_model.ipynb)
+
 ## How it fits together
 
 ```
@@ -27,6 +31,7 @@ The web app and the model only meet at the API contract, so both can be built at
 | `model/train.py` | Downloads the dataset and trains the model. Saved model files go in `model/artifacts/`, which git ignores. |
 | `model/tune.py` | Experiments behind the model: features, hyperparameter search, model families |
 | `model/best_lgb.json` | The tuned settings `train.py` uses |
+| `notebooks/laptop_price_model.ipynb` | Colab notebook: loads, cleans and explores the data, compares a linear regression baseline with the model, and explains one price |
 
 ## Who does what
 
