@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tally · Used laptop price estimator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Martian+Mono:wdth,wght@75..112.5,400..800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page: #E4E6E9;
+  --sheet: #F7F8F9;
+  --field: #FFFFFF;
+  --ink: #15171B;
+  --ink-2: #4A505A;
+  --ink-3: #848A94;
+  --rule: #D2D6DC;
+  --tag: #FF5A1F;
+  --tag-ink: #1C0D04;
+  --ok: #1F8A57;
+  --err: #B3261E;
+  --machine: #23262C;
+  --machine-2: #343840;
+  --paper: #FBFBF7;
+  --thermal: #2A2A31;
+  --font-display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Martian Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --top: 56px;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--page); color: var(--ink); font-family: var(--font-display); font-optical-sizing: auto; font-size: 14.5px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--tag); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+code { font-family: var(--font-mono); font-stretch: 87.5%; font-size: 11.5px; background: color-mix(in srgb, var(--ink) 8%, transparent); padding: 1px 5px; border-radius: 4px; }
+
+.top { position: sticky; top: 0; z-index: 30; height: var(--top); display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 20px; background: var(--sheet); border-bottom: 1px solid var(--rule); }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.tagmark { flex: none; width: 24px; height: 15px; background: var(--tag); border-radius: 7px 3px 3px 7px; position: relative; }
+.tagmark::after { content: ""; position: absolute; left: 5px; top: 5px; width: 5px; height: 5px; border-radius: 50%; background: var(--sheet); }
+.wordmark { font-weight: 800; font-size: 21px; letter-spacing: 0.01em; text-transform: uppercase; }
+.tagline { font-size: 13px; color: var(--ink-2); padding-left: 10px; border-left: 1px solid var(--rule); white-space: nowrap; }
+.top-right { display: flex; align-items: center; gap: 8px; }
+.pill { display: inline-flex; align-items: center; gap: 7px; padding: 5px 10px; border: 1px solid var(--rule); border-radius: 999px; font-family: var(--font-mono); font-stretch: 87.5%; font-size: 10.5px; color: var(--ink-2); white-space: nowrap; }
+.pill i { width: 6px; height: 6px; border-radius: 50%; background: var(--tag); }
+.tbtn { height: 32px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 8px; background: var(--field); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+.tbtn:hover { border-color: var(--ink-3); }
+.tbtn[aria-pressed="true"] { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
+.tbtn[hidden] { display: none; }
+a.tbtn { text-decoration: none; color: inherit; }
+@media (max-width: 640px) { .tagline, .pill { display: none; } }
+
+.app { display: grid; grid-template-columns: minmax(400px, 520px) minmax(0, 1fr); align-items: start; }
+.panel { background: var(--sheet); border-right: 1px solid var(--rule); min-height: calc(100vh - var(--top)); padding: 24px 28px 48px; }
+.counter { position: sticky; top: var(--top); height: calc(100vh - var(--top)); display: flex; flex-direction: column; min-width: 0; }
+
+h1 { font-weight: 800; font-size: 30px; line-height: 1.02; letter-spacing: -0.025em; margin: 0 0 8px; text-wrap: balance; }
+.lede { color: var(--ink-2); margin: 0; max-width: 46ch; }
+.sec { padding-top: 18px; margin-top: 20px; border-top: 1px dashed var(--rule); }
+.sec h2 { display: flex; align-items: baseline; gap: 10px; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; margin: 0; }
+.num { font-family: var(--font-mono); font-stretch: 87.5%; font-size: 11px; font-weight: 400; color: var(--ink-3); letter-spacing: 0; }
+.sub { margin: 3px 0 0; color: var(--ink-2); font-size: 13.5px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+.field { position: relative; margin-top: 12px; border-radius: 9px; outline: 2px solid transparent; outline-offset: 5px; transition: outline-color .15s; }
+.grid2 > .field { margin-top: 0; }
+.field.linked { outline-color: var(--tag); }
+.flag { position: absolute; right: -2px; top: -8px; transform: translateY(-100%); font-family: var(--font-mono); font-stretch: 87.5%; font-size: 10.5px; background: var(--tag); color: var(--tag-ink); padding: 2px 6px; border-radius: 4px; opacity: 0; pointer-events: none; transition: opacity .15s; white-space: nowrap; z-index: 5; }
+.field.linked .flag { opacity: 1; }
+.flabel, .field > label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.opt { font-weight: 400; color: var(--ink-3); }
+.sel { position: relative; }
+.sel::after { content: ""; position: absolute; right: 14px; top: 50%; width: 6px; height: 6px; border-right: 1.5px solid var(--ink-2); border-bottom: 1.5px solid var(--ink-2); transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+select, input[type="text"], input[type="number"] { width: 100%; height: 40px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 9px; background: var(--field); appearance: none; -webkit-appearance: none; }
+select { padding-right: 32px; cursor: pointer; }
+select:hover, input:hover { border-color: var(--ink-3); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { position: relative; display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 999px; background: var(--field); font-size: 13.5px; cursor: pointer; user-select: none; transition: background .12s, color .12s, border-color .12s; }
+.chip:hover { border-color: var(--ink-3); }
+.chip input, .tile input { position: absolute; opacity: 0; pointer-events: none; }
+.chip:has(input:checked) { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
+.chip:has(input:focus-visible), .tile:has(input:focus-visible) { outline: 2px solid var(--tag); outline-offset: 2px; }
+.pair { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.divider { width: 1px; height: 22px; background: var(--rule); }
+.aside { margin: 10px 0 0; font-size: 12.5px; color: var(--ink-3); }
+.field.missing > label::after, .field.missing > .flabel::after { content: ""; display: inline-block; width: 6px; height: 6px; margin-left: 7px; border-radius: 50%; background: var(--tag); vertical-align: 2px; }
+
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
+.tile { position: relative; display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 9px; background: var(--field); cursor: pointer; font-size: 13.5px; line-height: 1.25; transition: border-color .12s; }
+.tile:hover { border-color: var(--ink-3); }
+.tile .box { flex: none; width: 16px; height: 16px; border: 1.5px solid var(--ink-3); border-radius: 4px; position: relative; transition: background .12s, border-color .12s; }
+.tile:has(input:checked) { border-color: var(--ink); }
+.tile:has(input:checked) .box { background: var(--ink); border-color: var(--ink); }
+.tile:has(input:checked) .box::after { content: ""; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px; border: solid var(--sheet); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.tile .pts { margin-left: auto; padding-left: 6px; font-family: var(--font-mono); font-stretch: 87.5%; font-size: 10.5px; color: var(--ink-3); }
+.tile.none { border-style: dashed; }
+.howto { margin: 8px 0 0; min-height: 36px; font-size: 12.5px; color: var(--ink-2); }
+.howto b { color: var(--ink); font-weight: 600; }
+.grade { display: flex; align-items: center; gap: 12px; margin-top: 6px; flex-wrap: wrap; }
+.gscale { display: flex; gap: 3px; }
+.gcell { font-family: var(--font-mono); font-stretch: 87.5%; font-size: 10.5px; padding: 4px 8px; border-radius: 5px; background: color-mix(in srgb, var(--ink) 7%, transparent); color: var(--ink-3); transition: background .25s, color .25s; }
+.gcell.on { background: var(--ink); color: var(--sheet); }
+.grade-text { font-size: 12.5px; color: var(--ink-2); }
+.batt { flex: none; width: 20px; height: 10px; border: 1.5px solid currentColor; border-radius: 2.5px; position: relative; padding: 1px; }
+.batt::after { content: ""; position: absolute; right: -4px; top: 2px; width: 2px; height: 3px; background: currentColor; border-radius: 0 1px 1px 0; }
+.batt i { display: block; height: 100%; background: currentColor; border-radius: 1px; }
+.batt.q { display: grid; place-items: center; font-family: var(--font-mono); font-size: 7.5px; font-weight: 800; line-height: 1; padding: 0; }
+.chips.dim { opacity: .45; }
+.using { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 10px; padding: 8px 8px 8px 12px; border-radius: 9px; background: var(--ink); color: var(--sheet); font-size: 13px; }
+.using[hidden] { display: none; }
+.using button { background: transparent; border: 1px solid color-mix(in srgb, var(--sheet) 40%, transparent); color: var(--sheet); border-radius: 7px; padding: 3px 9px; cursor: pointer; font-size: 12.5px; }
+details.exact { margin-top: 10px; }
+details.exact summary { cursor: pointer; font-size: 13px; font-weight: 600; list-style: none; display: inline-flex; gap: 8px; align-items: baseline; color: var(--ink); }
+details.exact summary::-webkit-details-marker { display: none; }
+details.exact summary::before { content: "+"; font-family: var(--font-mono); color: var(--tag); }
+details.exact[open] summary::before { content: "\2212"; }
+.exact-body { margin-top: 10px; padding: 12px 14px 14px; border: 1px dashed var(--rule); border-radius: 10px; }
+.steps { padding-left: 18px; margin: 10px 0 12px; font-size: 13px; }
+.steps li { margin: 3px 0; }
+.mini { font-size: 11.5px; padding: 2px 7px; border-radius: 6px; border: 1px solid var(--rule); background: var(--field); cursor: pointer; margin-left: 6px; }
+.calc { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.calc.one { grid-template-columns: minmax(0, 200px); }
+.calc label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; }
+.calc-out { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; padding: 8px 10px; border-radius: 9px; background: color-mix(in srgb, var(--ink) 6%, transparent); font-size: 13px; min-height: 44px; }
+.calc-out strong { font-family: var(--font-mono); font-stretch: 87.5%; }
+
+.btn { height: 36px; padding: 0 14px; border-radius: 9px; border: 1px solid var(--rule); background: var(--field); cursor: pointer; font-weight: 600; font-size: 13px; }
+.btn:hover { border-color: var(--ink-3); }
+.btn.solid { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
+.btn[hidden] { display: none; }
+
+.mbar { display: none; }
+
+.stage { flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 56px 24px 0; overflow: hidden; }
+.stage-tools { position: absolute; top: 16px; left: 20px; z-index: 6; }
+.alert { position: absolute; top: 16px; left: 50%; z-index: 6; transform: translate(-50%, -6px); opacity: 0; transition: opacity .25s, transform .25s; background: var(--ink); color: var(--sheet); font-size: 12.5px; font-weight: 600; padding: 6px 12px 6px 10px; border-radius: 999px; white-space: nowrap; pointer-events: none; display: inline-flex; align-items: center; gap: 8px; }
+.alert i { width: 7px; height: 7px; border-radius: 50%; background: var(--tag); }
+.stage.is-offline .alert { opacity: 1; transform: translate(-50%, 0); }
+.machine { position: relative; display: flex; flex-direction: column; align-items: center; transform-origin: 50% 100%; transition: transform .35s ease; }
+.ghost { position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); width: 300px; height: 360px; border: 1.5px dashed var(--rule); border-bottom: 0; border-radius: 6px 6px 0 0; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 28px; color: var(--ink-2); }
+.ghost b { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); }
+.ghost span { font-size: 13px; }
+.stage.is-waiting .ghost { display: flex; }
+.feed { position: relative; z-index: 2; width: 348px; padding-top: 14px; margin-bottom: -71px; height: 0; overflow: hidden; transition: height 90ms cubic-bezier(.2, .9, .3, 1); }
+.feed.done { overflow: visible; }
+.feed.sweep { transition: transform .35s ease-in, opacity .35s ease-in; transform: translateY(-36px); opacity: 0; }
+.slip { position: relative; background-color: var(--paper); background-image: repeating-linear-gradient(0deg, rgba(0, 0, 0, .022) 0 1px, transparent 1px 3px); color: var(--thermal); font-family: var(--font-mono); font-stretch: 87.5%; font-size: 11.5px; line-height: 1.6; padding: 18px 18px 22px; transition: transform .45s cubic-bezier(.3, 1.4, .5, 1), box-shadow .45s; }
+.slip::before, .slip::after { content: ""; position: absolute; left: 0; right: 0; height: 7px; background: var(--paper); -webkit-mask-size: 10px 7px; mask-size: 10px 7px; -webkit-mask-repeat: repeat-x; mask-repeat: repeat-x; }
+.slip::before { top: -6.5px; -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 7 5 0 10 7Z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 7 5 0 10 7Z'/%3E%3C/svg%3E"); }
+.slip::after { bottom: -6.5px; -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 0 5 7 10 0Z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 0 5 7 10 0Z'/%3E%3C/svg%3E"); }
+.feed.done .slip { transform: translateY(-30px); box-shadow: 0 22px 30px -20px rgba(0, 0, 0, .45), 0 2px 5px rgba(0, 0, 0, .08); }
+.slip.printing .r { opacity: 0; }
+.slip.printing .r.ink { animation: ink .3s ease-out forwards; }
+.r.fresh { opacity: 0; }
+.r.fresh.ink { animation: ink .3s ease-out forwards; }
+@keyframes ink { 0% { opacity: .06; filter: blur(1.4px); } 55% { opacity: .85; filter: blur(.3px); } 100% { opacity: 1; filter: none; } }
+.r { transition: opacity .4s; }
+.stage.is-offline .slip .r { opacity: .35; }
+.r.logo { display: flex; justify-content: center; margin-bottom: 6px; }
+.r.logo span { background: var(--thermal); color: var(--paper); font-family: var(--font-display); font-weight: 800; font-size: 18px; letter-spacing: .16em; padding: 0 10px 1px 14px; }
+.r.c { text-align: center; }
+.r.dim, .r .dim, .r.fine { color: color-mix(in srgb, var(--thermal) 60%, var(--paper)); }
+.r.fine { font-size: 10.5px; }
+.r.rule { height: 1px; margin: 9px 0; background: repeating-linear-gradient(90deg, var(--thermal) 0 5px, transparent 5px 9px); }
+.r.dbl { height: 4px; margin: 10px 0; border-top: 1px solid var(--thermal); border-bottom: 1px solid var(--thermal); }
+.r.kv { display: flex; justify-content: space-between; gap: 12px; }
+.r.b { font-weight: 750; font-size: 12.5px; }
+.r.ind { padding-left: 27px; }
+.r.h { font-weight: 750; letter-spacing: .06em; }
+.r.gap { height: 8px; }
+.r.line { display: grid; grid-template-columns: minmax(0, 1fr) 64px 74px; gap: 10px; align-items: center; padding: 1px 5px; margin: 0 -5px; border-radius: 3px; transition: background .12s, opacity .4s; }
+.r.line .amt { text-align: right; font-variant-numeric: tabular-nums; }
+.r.line .bar { height: 7px; position: relative; }
+.r.line .bar i { position: absolute; top: 0; bottom: 0; left: 0; background: var(--thermal); border-radius: 1px; }
+.r.line.down .bar i { background: repeating-linear-gradient(-45deg, var(--thermal) 0 1.4px, transparent 1.4px 3.4px); box-shadow: inset 0 0 0 1px var(--thermal); }
+.r.line.base { font-weight: 750; }
+.r.line[data-feature] { cursor: help; }
+.r.line.hl { background: color-mix(in srgb, var(--tag) 28%, var(--paper)); }
+.r.total { display: flex; justify-content: space-between; align-items: center; min-height: 46px; padding: 6px 18px; margin: 0 -18px; font-weight: 800; transition: background .25s, color .25s, opacity .4s; }
+.r.total.lit { background: var(--thermal); color: var(--paper); }
+.r.total .lbl { font-size: 12px; letter-spacing: .08em; }
+.r.total .tot { font-size: 21px; font-weight: 800; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.r.range { margin-top: 6px; }
+.r.range span:last-child { font-variant-numeric: tabular-nums; }
+.r.barcode { display: flex; justify-content: center; height: 30px; margin: 12px 0 0; }
+.r.barcode span { background: var(--thermal); height: 100%; }
+.printer { position: relative; z-index: 1; width: 396px; height: 92px; border-radius: 16px 16px 24px 24px; background: var(--machine); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .09), inset 0 -3px 0 rgba(0, 0, 0, .25), 0 20px 30px -18px rgba(0, 0, 0, .5); }
+.slot { position: absolute; left: 18px; right: 18px; top: 16px; height: 10px; border-radius: 5px; background: #07080A; box-shadow: inset 0 2px 3px rgba(0, 0, 0, .8); }
+.slot-lip { position: absolute; z-index: 3; bottom: 66px; left: 50%; transform: translateX(-50%); width: 360px; height: 5px; border-radius: 0 0 5px 5px; background: #07080A; pointer-events: none; }
+.face { position: absolute; left: 22px; right: 18px; bottom: 15px; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-stretch: 87.5%; font-size: 10px; color: #8D939D; gap: 10px; }
+.face .right { display: flex; align-items: center; gap: 10px; }
+.led { width: 8px; height: 8px; border-radius: 50%; background: #3DDC84; box-shadow: 0 0 6px #3DDC84; transition: background .2s, box-shadow .2s; }
+.led.idle { background: #5B616B; box-shadow: none; }
+.led.busy { background: #FFB020; box-shadow: 0 0 8px #FFB020; animation: blink .5s steps(2) infinite; }
+.led.err { background: #FF4D4D; box-shadow: 0 0 8px #FF4D4D; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .25; } }
+.knob { width: 24px; height: 24px; border-radius: 50%; background: var(--machine-2); box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .08); }
+.cbar { flex: none; min-height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 10px 16px; }
+.cbar .acts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.cbar .hint { font-size: 12px; color: var(--ink-3); margin: 0; }
+.cbar .hint:empty, .cbar .acts:empty { display: none; }
+
+.callouts { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.callouts svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.co { position: absolute; text-align: right; font-size: 12px; line-height: 1.35; opacity: 0; transform: translateX(8px); transition: opacity .25s, transform .25s; }
+.callouts.on .co { opacity: 1; transform: none; }
+.co .t { display: block; font-weight: 650; }
+.co .t b { display: inline-grid; place-items: center; width: 17px; height: 17px; margin-right: 6px; border-radius: 50%; background: var(--tag); color: var(--tag-ink); font-family: var(--font-mono); font-size: 9.5px; vertical-align: 1px; }
+.co code { font-size: 10.5px; }
+.co .d { display: block; color: var(--ink-2); margin-top: 2px; }
+.br { position: absolute; width: 7px; border: 1.5px solid var(--tag); border-right: 0; border-radius: 3px 0 0 3px; opacity: 0; transition: opacity .25s; }
+.callouts.on .br { opacity: 1; }
+.callouts path { fill: none; stroke: var(--tag); stroke-width: 1.5; opacity: 0; transition: opacity .25s; }
+.callouts.on path { opacity: 1; }
+
+
+@media (max-width: 999px) {
+  .app { display: block; }
+  .panel { border-right: 0; min-height: 0; padding: 20px 18px 0; }
+  .counter { position: static; height: auto; }
+  .stage { overflow: hidden; padding-top: 56px; }
+  .stage-tools { display: none; }
+  .mbar { position: sticky; bottom: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 28px -18px 0; padding: 10px 18px; background: var(--sheet); border-top: 1px solid var(--rule); }
+  .mbar .k { display: block; font-size: 11.5px; color: var(--ink-2); }
+  .mbar .v { display: block; font-size: 20px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+}
+@media (max-width: 440px) {
+  .grid2, .tiles { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><span class="tagmark" aria-hidden="true"></span><span class="wordmark">Tally</span><span class="tagline">Used laptop appraisals</span></div>
+  <div class="top-right">
+    <span class="pill" id="modelPill"><i aria-hidden="true"></i>Connecting to the model…</span>
+    <a class="tbtn" href="https://github.com/iamelio/used-laptop-price-estimator" target="_blank" rel="noopener">How it works</a>
+  </div>
+</header>
+
+<div class="app">
+  <section class="panel" aria-labelledby="h1">
+    <h1 id="h1">What's your laptop worth?</h1>
+    <p class="lede">Answer what you can. The slip updates as you go and shows how each answer moves the price.</p>
+
+    <form id="form" novalidate>
+      <div class="sec">
+        <h2><span class="num">01</span>The laptop</h2>
+        <div class="grid2">
+          <div class="field" data-field="brand" data-req="brand"><span class="flag"></span>
+            <label for="brand">Brand</label>
+            <div class="sel"><select id="brand" name="brand"></select></div>
+          </div>
+          <div class="field">
+            <label for="modelName">Model <span class="opt">optional</span></label>
+            <input type="text" id="modelName" name="modelName" placeholder="XPS 13" autocomplete="off">
+          </div>
+          <div class="field" data-field="laptop_type" data-req="laptop_type"><span class="flag"></span>
+            <label for="type">Type</label>
+            <div class="sel"><select id="type" name="type"></select></div>
+          </div>
+          <div class="field" data-field="year" data-req="year"><span class="flag"></span>
+            <label for="year">Year it came out</label>
+            <div class="sel"><select id="year" name="year"></select></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h2><span class="num">02</span>Inside</h2>
+        <p class="sub">Find these in Settings, System, About on Windows, or Apple menu, About This Mac.</p>
+        <div class="field" data-field="cpu" data-req="cpu"><span class="flag"></span>
+          <label for="cpu">Processor</label>
+          <div class="sel"><select id="cpu" name="cpu"></select></div>
+        </div>
+        <div class="field" data-field="ram_gb" data-req="ram_gb"><span class="flag"></span>
+          <span class="flabel" id="lbl-ram">RAM</span>
+          <div class="chips" role="radiogroup" aria-labelledby="lbl-ram" id="rams"></div>
+        </div>
+        <div class="field" data-field="storage_gb storage_type" data-req="storage_gb"><span class="flag"></span>
+          <span class="flabel" id="lbl-storage">Storage</span>
+          <div class="pair">
+            <div class="chips" role="radiogroup" aria-labelledby="lbl-storage" id="storages"></div>
+            <span class="divider" aria-hidden="true"></span>
+            <div class="chips" role="radiogroup" aria-label="Storage type" id="stypes"></div>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="field" data-field="gpu"><span class="flag"></span>
+            <label for="gpu">Graphics <span class="opt">if you know</span></label>
+            <div class="sel"><select id="gpu" name="gpu"></select></div>
+          </div>
+          <div class="field" data-field="screen_inches"><span class="flag"></span>
+            <label for="screen">Screen size <span class="opt">if you know</span></label>
+            <div class="sel"><select id="screen" name="screen"></select></div>
+          </div>
+        </div>
+        <p class="aside">Not sure? Leave them. Gaming laptops usually have dedicated graphics, and screens are measured corner to corner.</p>
+      </div>
+
+      <div class="sec">
+        <h2><span class="num">03</span>Condition</h2>
+        <p class="sub">Tick anything that's true. We grade it from what you tick.</p>
+        <div class="field" data-field="issues" data-req="condition"><span class="flag"></span>
+          <div class="tiles" id="tiles" role="group" aria-label="Condition checklist"></div>
+          <p class="howto" id="howto" aria-live="polite"></p>
+          <div class="grade"><div class="gscale" id="gscale" aria-hidden="true"></div><span class="grade-text" id="gradeText" aria-live="polite"></span></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h2><span class="num">04</span>Battery</h2>
+        <p class="sub">How long does a full charge last with everyday use?</p>
+        <div class="field" data-field="battery" data-req="battery"><span class="flag"></span>
+          <div class="chips" id="runtimes" role="radiogroup" aria-label="Battery life" style="margin-top:12px"></div>
+          <div class="using" id="using" hidden><span id="usingText"></span><button type="button" id="removeExact">Remove</button></div>
+          <details class="exact" id="exact">
+            <summary>Know the exact battery health?</summary>
+            <div class="exact-body">
+              <div class="chips" role="radiogroup" aria-label="Operating system">
+                <label class="chip"><input type="radio" name="os" value="win" checked><span>Windows</span></label>
+                <label class="chip"><input type="radio" name="os" value="mac"><span>Mac</span></label>
+              </div>
+              <div id="os-win">
+                <ol class="steps">
+                  <li>Press Start, type <strong>cmd</strong> and open Command Prompt.</li>
+                  <li>Run <code>powercfg /batteryreport</code><button type="button" class="mini" id="copyCmd">Copy</button></li>
+                  <li>Open the <strong>battery-report.html</strong> file it saved. The window shows where.</li>
+                  <li>Under <strong>Installed batteries</strong>, copy these two numbers.</li>
+                </ol>
+                <div class="calc">
+                  <div><label for="designCap">Design capacity (mWh)</label><input type="number" id="designCap" inputmode="numeric" min="0" placeholder="52000"></div>
+                  <div><label for="fullCap">Full charge capacity (mWh)</label><input type="number" id="fullCap" inputmode="numeric" min="0" placeholder="40560"></div>
+                </div>
+              </div>
+              <div id="os-mac" hidden>
+                <ol class="steps">
+                  <li>Open <strong>System Settings</strong>, then <strong>Battery</strong>.</li>
+                  <li>Click the <strong>(i)</strong> next to Battery Health.</li>
+                  <li>Enter the <strong>Maximum Capacity</strong> figure.</li>
+                </ol>
+                <div class="calc one">
+                  <div><label for="macPct">Maximum capacity (%)</label><input type="number" id="macPct" inputmode="numeric" min="1" max="100" placeholder="87"></div>
+                </div>
+              </div>
+              <div class="calc-out"><span id="calcText">Enter both numbers to work out battery health.</span><button type="button" class="btn solid" id="useExact" hidden>Use it</button></div>
+            </div>
+          </details>
+        </div>
+      </div>
+    </form>
+
+    <div class="mbar" id="mbar">
+      <div><span class="k" id="mbK"></span><span class="v" id="mbV"></span></div>
+      <button type="button" class="btn solid" id="mbGo">See slip</button>
+    </div>
+  </section>
+
+  <section class="counter" id="counter" aria-label="Your appraisal">
+    <div class="stage" id="stage">
+      <div class="stage-tools"><button type="button" class="tbtn" id="explainBtn" aria-pressed="false">Explain the slip</button></div>
+      <div class="alert" role="status"><i aria-hidden="true"></i>Can't reach the pricing model. Showing your last estimate.</div>
+      <div class="callouts" id="callouts" aria-hidden="true"></div>
+      <div class="machine" id="machine">
+        <div class="ghost"><b id="ghostCount"></b><span id="ghostText"></span></div>
+        <div class="feed" id="feed"><div class="slip" id="slip"></div></div>
+        <div class="slot-lip" aria-hidden="true"></div>
+        <div class="printer" aria-hidden="true">
+          <div class="slot"></div>
+          <div class="face"><span>TALLY TP-80 · 80 mm thermal</span><span class="right"><span id="ledText">LIVE</span><span class="led" id="led"></span><span class="knob"></span></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="cbar">
+      <div class="acts" id="actions"></div>
+      <p class="hint" id="hint"></p>
+    </div>
+    <p class="sr-only" aria-live="polite" id="live"></p>
+  </section>
+</div>
+
+
+<script>
+(() => {
+  const $ = (s, el = document) => el.querySelector(s);
+  const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const stackedQuery = window.matchMedia("(max-width: 999px)");
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const fmt = (n) => Math.round(n).toLocaleString("en-NG");
+  const naira = (n) => "₦" + fmt(n);
+  const signed = (n) => (n > 0 ? "+" : "−") + naira(Math.abs(n));
+
+  const API = "/api";
+  const DEBOUNCE = 260;
+  let OPTS = null;
+
+  const GRADES = { like_new: { name: "Like new", mult: 1.05 }, good: { name: "Good", mult: 1 }, fair: { name: "Fair", mult: 0.88 }, worn: { name: "Worn", mult: 0.72 } };
+  const GRADE_ORDER = ["like_new", "good", "fair", "worn"];
+  const ISSUES = [
+    { id: "scratches", pts: 1, short: "scratches", t: "Visible scratches", how: "Hold it at arm's length under a light. Hairlines you have to hunt for don't count." },
+    { id: "dent_or_crack", pts: 2, short: "dent or crack", t: "Dent, crack or chip", how: "Check the corners, the lid and around the hinge." },
+    { id: "screen_damage", pts: 2, short: "screen marks", t: "Screen marks or dead pixels", how: "Open a plain white page at full brightness and look closely." },
+    { id: "worn_keys", pts: 1, short: "worn keys", t: "Worn or missing keys", how: "Look for shiny or faded letters, especially on the space bar." },
+    { id: "something_broken", pts: 3, short: "faulty part", t: "Something doesn't work", how: "Try every key, the trackpad, each port, the camera and the speakers." },
+    { id: "loose_hinge", pts: 2, short: "loose hinge", t: "Loose or wobbly hinge", how: "Tap the top of the open screen. It should hold still." },
+    { id: "repaired", pts: 1, short: "repaired", t: "Repaired or parts replaced", how: "Count a new screen, battery or keyboard." },
+  ];
+  const RUNTIMES = [
+    { id: "all_day", n: "All day", fill: 0.9, mult: 1, slip: "Battery: all day", item: "Battery lasts all day" },
+    { id: "half_day", n: "Half a day", fill: 0.55, mult: 0.95, slip: "Battery: half a day", item: "Battery lasts half a day" },
+    { id: "one_to_three_hours", n: "1 to 3 hours", fill: 0.25, mult: 0.88, slip: "Battery: 1 to 3 hours", item: "Battery lasts 1 to 3 hours" },
+    { id: "needs_charger", n: "Needs the charger", fill: 0.06, mult: 0.78, slip: "Battery: needs charger", item: "Needs the charger" },
+    { id: "unknown", n: "Not sure", fill: null, mult: 0.96, slip: "Battery not checked", item: "Battery not checked" },
+  ];
+  const REQ_NAMES = { brand: "brand", laptop_type: "type", year: "year", cpu: "processor", ram_gb: "RAM", storage_gb: "storage", condition: "condition", battery: "battery" };
+  const HOWTO_DEFAULT = "Point at an item to see how to check it.";
+
+  const EXAMPLE = { brand: "Dell", modelName: "XPS 13", type: "Ultrabook", year: 2021, cpu: "Intel Core i7", ram: 16, storage: 512, storageType: "ssd", gpu: "unknown", screen: null, issues: ["scratches"], noIssues: false, runtime: "half_day", healthPct: null };
+  const BLANK = { brand: "", modelName: "", type: "", year: 0, cpu: "", ram: 0, storage: 0, storageType: "ssd", gpu: "unknown", screen: null, issues: [], noIssues: false, runtime: "", healthPct: null };
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+
+  let specs = clone(EXAMPLE);
+  let current = null;
+  let status = "waiting";
+  let busy = false;
+  let skip = false;
+  let dirty = false;
+  let pendingPct = null;
+  let explain = false;
+  let scale = 1;
+  let shiftX = 0;
+  let changeTimer = 0;
+  let requestSeq = 0;
+
+  const form = $("#form"), stage = $("#stage"), machine = $("#machine"), feed = $("#feed"), slip = $("#slip");
+  const PAD = 14;
+
+  const pointsOf = (issues) => issues.reduce((sum, id) => sum + ISSUES.find((i) => i.id === id).pts, 0);
+  const gradeOf = (issues) => {
+    const p = pointsOf(issues);
+    const min = OPTS ? OPTS.condition_rule.min_points : { like_new: 0, good: 1, fair: 3, worn: 5 };
+    return GRADE_ORDER.filter((g) => p >= min[g]).pop() || "like_new";
+  };
+  const storageLabel = (gb) => (gb >= 1024 && gb % 1024 === 0 ? gb / 1024 + " TB" : gb + " GB");
+
+  function toRequest(s) {
+    return {
+      brand: s.brand,
+      model_name: s.modelName || null,
+      laptop_type: s.type,
+      year: s.year,
+      cpu: s.cpu,
+      ram_gb: s.ram,
+      storage_gb: s.storage,
+      storage_type: s.storageType,
+      gpu: s.gpu === "unknown" ? null : s.gpu,
+      screen_inches: s.screen || null,
+      issues: s.issues,
+      battery_runtime: s.runtime || "unknown",
+      battery_health_pct: s.healthPct,
+    };
+  }
+  function fromResponse(r) {
+    return {
+      id: r.id,
+      date: new Date(r.created_at),
+      base: r.base_value,
+      lines: r.contributions.map((c) => ({ feature: c.feature, label: c.label, amount: c.amount, source: c.source })),
+      estimate: r.estimate,
+      low: r.range.low,
+      high: r.range.high,
+      grade: r.condition_grade,
+      mae: r.model.mae,
+      calibrated: /calibrated/i.test(r.model.name),
+      mock: r.model.kind === "mock",
+    };
+  }
+  async function requestAppraisal(s) {
+    const res = await fetch(`${API}/appraise`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(toRequest(s)),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return fromResponse(await res.json());
+  }
+
+  function groupLines(lines, estimate) {
+    const limit = estimate * 0.015;
+    const small = lines.filter((l) => Math.abs(l.amount) < limit);
+    if (small.length < 2) return lines;
+    const big = lines.filter((l) => Math.abs(l.amount) >= limit);
+    const net = small.reduce((t, l) => t + l.amount, 0);
+    return net === 0 ? big : [...big, { feature: small.map((l) => l.feature).join(" "), label: "Other details (" + small.length + ")", amount: net, other: true }];
+  }
+
+  const options = (placeholder, values, label) => (placeholder ? `<option value="">${placeholder}</option>` : "") + values.map((v) => `<option value="${esc(v)}">${esc(label ? label(v) : v)}</option>`).join("");
+  function radioChips(container, name, values, label) {
+    container.innerHTML = values.map((v) => `<label class="chip"><input type="radio" name="${name}" value="${esc(v)}"><span>${esc(label(v))}</span></label>`).join("");
+  }
+  function buildForm() {
+    $("#brand").innerHTML = options("Choose a brand", OPTS.brands);
+    $("#type").innerHTML = options("Choose a type", OPTS.laptop_types);
+    const years = []; for (let y = OPTS.year_max; y >= OPTS.year_min; y--) years.push(y);
+    $("#year").innerHTML = options("Choose a year", years);
+    const groups = {};
+    OPTS.cpus.forEach((c) => {
+      const vendor = ["Intel", "AMD", "Apple"].includes(c.split(" ")[0]) ? c.split(" ")[0] : "Other";
+      (groups[vendor] ||= []).push(c);
+    });
+    $("#cpu").innerHTML = '<option value="">Choose a processor</option>' + Object.entries(groups).map(([g, list]) => `<optgroup label="${g}">${options("", list)}</optgroup>`).join("");
+    $("#gpu").innerHTML = '<option value="unknown">Not sure</option><option value="integrated">Built in</option><option value="dedicated">Dedicated (NVIDIA or AMD Radeon)</option>';
+    $("#screen").innerHTML = '<option value="">Not sure</option>' + options("", OPTS.screen_inches, (v) => v + " inches");
+    radioChips($("#rams"), "ram", OPTS.ram_gb, (v) => v + " GB");
+    radioChips($("#storages"), "storage", OPTS.storage_gb, storageLabel);
+    radioChips($("#stypes"), "stype", ["ssd", "hdd"], (v) => (v === "ssd" ? "SSD" : "Hard drive"));
+    const tile = (i) => `<label class="tile" data-how="${esc(i.how)}"><input type="checkbox" name="issue" value="${i.id}"><span class="box" aria-hidden="true"></span><span>${esc(i.t)}</span><span class="pts" aria-hidden="true">+${i.pts}</span></label>`;
+    $("#tiles").innerHTML = ISSUES.map(tile).join("") + `<label class="tile none" data-how="Tick this when nothing else here applies."><input type="checkbox" name="none" id="none"><span class="box" aria-hidden="true"></span><span>None of these</span></label>`;
+    $("#gscale").innerHTML = GRADE_ORDER.map((g) => `<span class="gcell" data-g="${g}">${GRADES[g].name}</span>`).join("");
+    $("#runtimes").innerHTML = RUNTIMES.map((r) => `<label class="chip"><input type="radio" name="runtime" value="${r.id}">${r.fill == null ? '<span class="batt q" aria-hidden="true">?</span>' : `<span class="batt" aria-hidden="true"><i style="width:${Math.round(r.fill * 100)}%"></i></span>`}<span>${r.n}</span></label>`).join("");
+    $("#howto").textContent = HOWTO_DEFAULT;
+  }
+  function setRadio(name, value) { $$(`input[name="${name}"]`, form).forEach((i) => { i.checked = String(i.value) === String(value); }); }
+  function syncForm() {
+    $("#brand").value = specs.brand; $("#modelName").value = specs.modelName; $("#type").value = specs.type;
+    $("#year").value = specs.year ? String(specs.year) : ""; $("#cpu").value = specs.cpu;
+    $("#gpu").value = specs.gpu; $("#screen").value = specs.screen ? String(specs.screen) : "";
+    setRadio("ram", specs.ram); setRadio("storage", specs.storage); setRadio("stype", specs.storageType); setRadio("runtime", specs.runtime);
+    $$('input[name="issue"]').forEach((i) => { i.checked = specs.issues.includes(i.value); });
+    $("#none").checked = specs.noIssues;
+    updateGrade(); updateExactBanner(); updateMissing();
+  }
+  function missing() {
+    const m = [];
+    if (!specs.brand) m.push("brand");
+    if (!specs.type) m.push("laptop_type");
+    if (!specs.year) m.push("year");
+    if (!specs.cpu) m.push("cpu");
+    if (!specs.ram) m.push("ram_gb");
+    if (!specs.storage) m.push("storage_gb");
+    if (!specs.issues.length && !specs.noIssues) m.push("condition");
+    if (!specs.runtime && specs.healthPct == null) m.push("battery");
+    return m;
+  }
+  function updateMissing() {
+    const m = missing();
+    $$(".field[data-req]").forEach((f) => f.classList.toggle("missing", status === "waiting" && m.includes(f.dataset.req)));
+    $("#ghostCount").textContent = m.length === 1 ? "1 answer to go" : `${m.length} answers to go`;
+    const names = m.map((k) => REQ_NAMES[k]);
+    $("#ghostText").textContent = names.length ? `Still needed: ${names.join(", ")}. Your slip prints as soon as they're in.` : "Printing now.";
+    updateMobileBar();
+  }
+  function updateGrade() {
+    const answered = specs.issues.length > 0 || specs.noIssues;
+    const g = gradeOf(specs.issues);
+    $$(".gcell").forEach((c) => c.classList.toggle("on", answered && c.dataset.g === g));
+    const p = pointsOf(specs.issues);
+    $("#gradeText").textContent = answered ? `${GRADES[g].name}, ${p} point${p === 1 ? "" : "s"}` : "Not graded yet";
+  }
+  function updateExactBanner() {
+    const on = specs.healthPct != null;
+    $("#using").hidden = !on;
+    $("#runtimes").classList.toggle("dim", on);
+    if (on) $("#usingText").textContent = `Using exact battery health: ${specs.healthPct}%`;
+  }
+
+  function specsChanged(wait = DEBOUNCE) {
+    updateMissing();
+    clearTimeout(changeTimer);
+    if (busy) { dirty = true; return; }
+    if (missing().length) {
+      requestSeq++;
+      if (status !== "waiting") clearSlip();
+      return;
+    }
+    if (status === "waiting") changeTimer = setTimeout(() => printSlip(), 450);
+    else changeTimer = setTimeout(liveUpdate, wait);
+  }
+
+  form.addEventListener("change", (e) => {
+    const t = e.target;
+    switch (t.name) {
+      case "brand": specs.brand = t.value; break;
+      case "type": specs.type = t.value; break;
+      case "year": specs.year = Number(t.value); break;
+      case "cpu": specs.cpu = t.value; break;
+      case "gpu": specs.gpu = t.value; break;
+      case "screen": specs.screen = t.value ? Number(t.value) : null; break;
+      case "ram": specs.ram = Number(t.value); break;
+      case "storage": specs.storage = Number(t.value); break;
+      case "stype": specs.storageType = t.value; break;
+      case "issue": {
+        const set = new Set(specs.issues);
+        if (t.checked) set.add(t.value); else set.delete(t.value);
+        specs.issues = ISSUES.map((i) => i.id).filter((id) => set.has(id));
+        if (t.checked) { specs.noIssues = false; $("#none").checked = false; }
+        updateGrade(); break;
+      }
+      case "none":
+        specs.noIssues = t.checked;
+        if (t.checked) { specs.issues = []; $$('input[name="issue"]').forEach((i) => { i.checked = false; }); }
+        updateGrade(); break;
+      case "runtime": specs.runtime = t.value; specs.healthPct = null; updateExactBanner(); break;
+      case "os": $("#os-win").hidden = t.value !== "win"; $("#os-mac").hidden = t.value !== "mac"; updateCalc(); return;
+      default: return;
+    }
+    specsChanged();
+  });
+  $("#modelName").addEventListener("input", (e) => { specs.modelName = e.target.value.trim(); specsChanged(800); });
+
+  const showHow = (tile) => { $("#howto").innerHTML = tile ? `<b>How to check:</b> ${esc(tile.dataset.how)}` : HOWTO_DEFAULT; };
+  $("#tiles").addEventListener("mouseover", (e) => showHow(e.target.closest(".tile")));
+  $("#tiles").addEventListener("focusin", (e) => showHow(e.target.closest(".tile")));
+  $("#tiles").addEventListener("mouseleave", () => showHow(null));
+
+  function updateCalc() {
+    const os = $('input[name="os"]:checked').value;
+    const out = $("#calcText"), use = $("#useExact");
+    pendingPct = null;
+    if (os === "win") {
+      const d = Number($("#designCap").value), f = Number($("#fullCap").value);
+      if (!(d > 0 && f > 0)) out.textContent = "Enter both numbers to work out battery health.";
+      else if (f > d * 1.15) out.textContent = "Full charge capacity is usually lower than design capacity. Check you haven't swapped them.";
+      else { pendingPct = Math.min(100, Math.round((f / d) * 100)); out.innerHTML = `Battery health: <strong>${pendingPct}%</strong>`; }
+    } else {
+      const p = Number($("#macPct").value);
+      if (!(p >= 1 && p <= 100)) out.textContent = "Enter a figure between 1 and 100.";
+      else { pendingPct = Math.round(p); out.innerHTML = `Battery health: <strong>${pendingPct}%</strong>`; }
+    }
+    use.hidden = pendingPct == null;
+    if (pendingPct != null) use.textContent = `Use ${pendingPct}%`;
+  }
+  ["#designCap", "#fullCap", "#macPct"].forEach((id) => $(id).addEventListener("input", updateCalc));
+  $("#useExact").addEventListener("click", () => { if (pendingPct == null) return; specs.healthPct = pendingPct; updateExactBanner(); specsChanged(); });
+  $("#removeExact").addEventListener("click", () => { specs.healthPct = null; updateExactBanner(); specsChanged(); });
+  $("#copyCmd").addEventListener("click", async (e) => {
+    const b = e.currentTarget;
+    try { await navigator.clipboard.writeText("powercfg /batteryreport"); b.textContent = "Copied"; }
+    catch { b.textContent = "Select and copy it"; }
+    setTimeout(() => { b.textContent = "Copy"; }, 1600);
+  });
+
+  function fmtDate(d) {
+    const m = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"][d.getMonth()];
+    return `${String(d.getDate()).padStart(2, "0")} ${m} ${d.getFullYear()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  }
+  function barcode(id) {
+    let seed = 0; for (const ch of id) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
+    const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    let html = "", total = 0;
+    while (total < 200) { const w = 1 + Math.floor(rnd() * 3), g = 1 + Math.floor(rnd() * 3); html += `<span style="width:${w}px;margin-right:${g}px"></span>`; total += w + g; }
+    return html;
+  }
+  let rowTarget = slip;
+  function addRow(key, cls, html, attrs) {
+    const d = document.createElement("div");
+    d.className = "r " + cls; d.innerHTML = html; d.dataset.key = key;
+    if (attrs) for (const k in attrs) d.setAttribute(k, attrs[k]);
+    rowTarget.appendChild(d); return d;
+  }
+  function renderSlip(a, s, into = slip) {
+    rowTarget = into;
+    into.innerHTML = "";
+    addRow("logo", "logo", "<span>TALLY</span>");
+    addRow("head", "c dim", "LAPTOP APPRAISAL · AMOUNTS IN ₦");
+    addRow("rule1", "rule", "");
+    addRow("meta", "kv", `<span>SLIP ${a.id}</span><span>${fmtDate(a.date)}</span>`);
+    addRow("rule2", "rule", "");
+    addRow("item", "b", esc(`1 × ${s.brand} ${s.modelName || s.type} · ${s.year}`.toUpperCase()));
+    addRow("spec", "ind", esc([s.type, s.cpu, s.ram + " GB", storageLabel(s.storage) + (s.storageType === "ssd" ? " SSD" : " HDD")].join(" · ")));
+    const extras = [];
+    if (s.gpu !== "unknown") extras.push(s.gpu === "dedicated" ? "Dedicated graphics" : "Built-in graphics");
+    if (s.screen) extras.push(s.screen + '" screen');
+    if (extras.length) addRow("extras", "ind", esc(extras.join(" · ")));
+    const issueText = s.issues.length ? " (" + s.issues.map((id) => ISSUES.find((i) => i.id === id).short).join(", ") + ")" : "";
+    addRow("cond", "ind", esc(`Condition: ${GRADES[a.grade].name.toLowerCase()}${issueText}`));
+    addRow("batt", "ind", esc(s.healthPct != null ? `Battery health ${s.healthPct}%` : (RUNTIMES.find((r) => r.id === s.runtime) || RUNTIMES[4]).item));
+    addRow("rule3", "rule", "");
+    addRow("base", "line base", `<span class="l">STARTING POINT</span><span class="bar"></span><span class="amt">${fmt(a.base)}</span>`, { "data-anat": "base" });
+    addRow("basefine", "fine", "Average used laptop in our data", { "data-anat": "base" });
+
+    const lines = groupLines(a.lines, a.estimate);
+    const max = Math.max(...lines.map((l) => Math.abs(l.amount)), 1);
+    const lineRow = (l) => {
+      const pct = Math.max(5, Math.round((Math.abs(l.amount) / max) * 100));
+      const amt = l.amount > 0 ? "+" + fmt(l.amount) : "(" + fmt(-l.amount) + ")";
+      addRow(l.other ? "line:other" : "line:" + l.feature, "line " + (l.amount > 0 ? "up" : "down"), `<span class="l">${esc(l.label)}</span><span class="bar"><i style="width:${pct}%"></i></span><span class="amt">${amt}</span>`, { "data-anat": "lines", "data-feature": l.feature, "data-amount": l.amount });
+    };
+    const ups = lines.filter((l) => l.amount > 0).sort((x, y) => y.amount - x.amount);
+    const downs = lines.filter((l) => l.amount < 0).sort((x, y) => x.amount - y.amount);
+    if (ups.length) { addRow("gapup", "gap", "", { "data-anat": "lines" }); addRow("hup", "h", "ADDS TO THE PRICE", { "data-anat": "lines" }); ups.forEach(lineRow); }
+    if (downs.length) { addRow("gapdown", "gap", "", { "data-anat": "lines" }); addRow("hdown", "h", "TAKES AWAY", { "data-anat": "lines" }); downs.forEach(lineRow); }
+
+    addRow("dbl1", "dbl", "");
+    addRow("total", "total lit",`<span class="lbl">ESTIMATE</span><span class="tot">${naira(a.estimate)}</span>`, { "data-anat": "estimate" });
+    addRow("range", "kv range", `<span>FAIR RANGE</span><span>${naira(a.low)} – ${naira(a.high)}</span>`, { "data-anat": "range" });
+    addRow("rangefine", "fine", "8 in 10 laptops like this sell within this range", { "data-anat": "range" });
+    addRow("dbl2", "dbl", "");
+    addRow("mae", "c", `Usually within ±${naira(a.mae)} of the real price`, { "data-anat": "mae" });
+    addRow("maefine", "c dim", a.mock ? "Sample prices from the mock model" : a.calibrated ? "Calibrated to Nigerian used listings" : "European shop prices", { "data-anat": "mae" });
+    addRow("barcode", "barcode", barcode(a.id), { "aria-hidden": "true" });
+    rowTarget = slip;
+  }
+
+  const isStacked = () => stackedQuery.matches;
+  function applyTransform() {
+    const parts = [];
+    if (shiftX) parts.push(`translateX(${shiftX}px)`);
+    if (scale < 1) parts.push(`scale(${scale})`);
+    machine.style.transform = parts.join(" ");
+  }
+  function fitMachine() {
+    const slipH = slip.childElementCount ? slip.offsetHeight : 430;
+    const need = PAD + slipH + 38 + 92 - 71;
+    if (isStacked()) {
+      shiftX = 0;
+      scale = Math.min(1, (stage.clientWidth - 20) / 396);
+      applyTransform();
+      stage.style.minHeight = Math.max(480, need * scale + 70) + "px";
+      return;
+    }
+    stage.style.minHeight = "";
+    const avail = stage.clientHeight - parseFloat(getComputedStyle(stage).paddingTop) - 6;
+    scale = Math.max(0.6, Math.min(1, avail / need));
+    applyTransform();
+  }
+
+  const sleep = (ms) => (skip || ms <= 0 ? Promise.resolve() : new Promise((r) => setTimeout(r, ms)));
+  function delayFor(r) {
+    const c = r.classList;
+    if (c.contains("logo")) return 220;
+    if (c.contains("h")) return 180;
+    if (c.contains("rule") || c.contains("dbl")) return 70;
+    if (c.contains("gap")) return 50;
+    if (c.contains("barcode")) return 160;
+    if (c.contains("line")) return 95;
+    return 70;
+  }
+  function resetFeed() {
+    feed.style.transition = "none";
+    feed.className = "feed";
+    feed.style.height = "0px";
+    void feed.offsetHeight;
+    feed.style.transition = "";
+  }
+  function showInstant(a) {
+    current = a;
+    resetFeed();
+    renderSlip(a, specs);
+    feed.style.transition = "none";
+    feed.style.height = PAD + slip.offsetHeight + "px";
+    fitMachine();
+    void feed.offsetHeight; feed.style.transition = "";
+    feed.classList.add("done");
+    setStatus("live");
+  }
+  async function printSlip() {
+    if (busy) return;
+    busy = true; skip = false; dirty = false;
+    const hadSlip = slip.childElementCount > 0;
+    setStatus("printing");
+    let first;
+    try { first = await requestAppraisal(clone(specs)); }
+    catch {
+      busy = false;
+      if (!hadSlip) { resetFeed(); slip.innerHTML = ""; current = null; }
+      setStatus("offline");
+      return;
+    }
+    if (hadSlip && !reduce) { feed.classList.add("sweep"); await sleep(350); }
+    resetFeed();
+    current = first;
+    renderSlip(current, specs);
+    slip.classList.add("printing");
+    fitMachine();
+    await sleep(reduce ? 0 : 260);
+    for (const r of $$(".r", slip)) {
+      feed.style.height = PAD + r.offsetTop + r.offsetHeight + "px";
+      r.classList.add("ink");
+      if (!reduce) await sleep(delayFor(r));
+    }
+    feed.style.height = PAD + slip.offsetHeight + "px";
+    await sleep(reduce ? 0 : 240);
+    slip.classList.remove("printing");
+    feed.classList.add("done");
+    await sleep(reduce ? 0 : 450);
+    busy = false;
+    setStatus("live");
+    $("#live").textContent = `Appraisal printed. Estimate ${naira(current.estimate)}, fair range ${naira(current.low)} to ${naira(current.high)}.`;
+    if (dirty) { dirty = false; specsChanged(); }
+  }
+  stage.addEventListener("click", (e) => { if (busy && !e.target.closest("button")) skip = true; });
+
+  async function liveUpdate() {
+    if (status === "waiting") return;
+    if (busy) { dirty = true; return; }
+    const seq = ++requestSeq;
+    setLed("busy", "UPDATING");
+    let next;
+    try { next = await requestAppraisal(clone(specs)); }
+    catch { if (seq === requestSeq) setStatus("offline"); return; }
+    if (seq !== requestSeq || status === "waiting") return;
+    if (busy) { dirty = true; return; }
+    next.id = current.id;
+    next.date = current.date;
+    await reprint(next);
+    setStatus("live");
+    $("#live").textContent = `Estimate updated to ${naira(next.estimate)}.`;
+    if (dirty) { dirty = false; specsChanged(); }
+  }
+  function reprintDelay(r) {
+    const c = r.classList;
+    if (c.contains("h")) return 110;
+    if (c.contains("rule") || c.contains("dbl")) return 40;
+    if (c.contains("gap")) return 30;
+    if (c.contains("barcode")) return 100;
+    if (c.contains("line")) return 60;
+    return 45;
+  }
+  async function reprint(next) {
+    current = next;
+    const draft = document.createElement("div");
+    renderSlip(next, specs, draft);
+    const oldRows = $$(".r", slip);
+    const newRows = Array.from(draft.children);
+    const same = (a, b) => a.dataset.key === b.dataset.key && a.innerHTML === b.innerHTML;
+    let from = 0;
+    while (from < oldRows.length && from < newRows.length && same(oldRows[from], newRows[from])) from++;
+    if (from === oldRows.length && from === newRows.length) return;
+
+    busy = true; skip = false; dirty = false;
+    setLed("busy", "REPRINTING");
+    if (!reduce) {
+      feed.classList.remove("done");
+      await sleep(240);
+      const kept = from > 0 ? oldRows[from - 1].offsetTop + oldRows[from - 1].offsetHeight : 0;
+      const distance = feed.offsetHeight - (PAD + kept);
+      const rewind = Math.round(Math.min(650, Math.max(260, distance * 0.9)));
+      feed.style.transition = `height ${rewind}ms cubic-bezier(.5, 0, .75, 1)`;
+      feed.style.height = PAD + kept + "px";
+      await sleep(rewind + 60);
+      feed.style.transition = "";
+    }
+    oldRows.slice(from).forEach((r) => r.remove());
+    const fresh = newRows.slice(from);
+    fresh.forEach((r) => { r.classList.add("fresh"); slip.appendChild(r); });
+    fitMachine();
+    for (const r of fresh) {
+      feed.style.height = PAD + r.offsetTop + r.offsetHeight + "px";
+      r.classList.add("ink");
+      if (!reduce) await sleep(reprintDelay(r));
+    }
+    feed.style.height = PAD + slip.offsetHeight + "px";
+    await sleep(reduce ? 0 : 160);
+    fresh.forEach((r) => r.classList.remove("fresh", "ink"));
+    feed.classList.add("done");
+    await sleep(reduce ? 0 : 380);
+    busy = false;
+  }
+  function clearSlip() {
+    requestSeq++;
+    resetFeed();
+    slip.innerHTML = "";
+    current = null;
+    setStatus("waiting");
+    fitMachine();
+  }
+
+  function setLed(kind, text) { $("#led").className = "led" + (kind ? " " + kind : ""); $("#ledText").textContent = text; }
+  function setStatus(s) {
+    status = s;
+    stage.classList.toggle("is-waiting", s === "waiting");
+    stage.classList.toggle("is-offline", s === "offline");
+    if (s === "printing") setLed("busy", "PRINTING");
+    else if (s === "offline") setLed("err", "OFFLINE");
+    else if (s === "waiting") setLed("idle", "WAITING");
+    else setLed("", "LIVE");
+    $$(".states [data-state]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.state === s)));
+    $("#explainBtn").hidden = !(s === "live" || s === "offline");
+    updateMissing();
+    renderActions();
+    updateExplain();
+  }
+  function renderActions() {
+    const box = $("#actions"), hint = $("#hint");
+    box.innerHTML = ""; hint.textContent = "";
+    const btn = (label, fn, solid) => { const b = document.createElement("button"); b.type = "button"; b.className = "btn" + (solid ? " solid" : ""); b.textContent = label; b.addEventListener("click", fn); box.appendChild(b); return b; };
+    if (status === "live") {
+      btn("Copy summary", async (e) => {
+        const b = e.currentTarget, a = current;
+        const text = `${specs.brand} ${specs.modelName || specs.type} (${specs.year}): about ${naira(a.estimate)}. Fair range ${naira(a.low)} to ${naira(a.high)}. Appraised with Tally: ${location.origin}`;
+        try { await navigator.clipboard.writeText(text); b.textContent = "Copied"; } catch { b.textContent = "Couldn't copy"; }
+        setTimeout(() => { b.textContent = "Copy summary"; }, 1600);
+      });
+      btn("New appraisal", () => { specs = clone(BLANK); syncForm(); clearSlip(); window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }); });
+      hint.textContent = "Change any answer and the slip updates.";
+    } else if (status === "offline") {
+      btn("Try again", () => (current ? liveUpdate() : printSlip()), true);
+    } else if (status === "printing") {
+      hint.textContent = "Click the slip to skip ahead.";
+    }
+  }
+  function updateMobileBar() {
+    const k = $("#mbK"), v = $("#mbV"), go = $("#mbGo");
+    if (status === "printing") { k.textContent = "Printing your slip"; v.textContent = "…"; go.hidden = false; return; }
+    if (status === "waiting" || !current) {
+      const n = missing().length;
+      k.textContent = "Your slip";
+      v.textContent = n === 1 ? "1 answer to go" : `${n} answers to go`;
+      go.hidden = true;
+      return;
+    }
+    go.hidden = false;
+    k.textContent = status === "offline" ? "Last estimate" : "Live estimate";
+    v.textContent = naira(current.estimate);
+  }
+  $("#mbGo").addEventListener("click", () => $("#counter").scrollIntoView({ block: "end", behavior: reduce ? "auto" : "smooth" }));
+
+  const ANAT = [
+    { k: "base", t: "Starting point", c: "base_value", d: "Average price in the training data." },
+    { k: "lines", t: "Each answer", c: "contributions[]", d: "How far it moved the price." },
+    { k: "estimate", t: "Estimate", c: "estimate", d: "Starting point plus every line." },
+    { k: "range", t: "Fair range", c: "range", d: "An 80% prediction interval." },
+    { k: "mae", t: "Accuracy", c: "model.mae", d: "Average error on Nigerian listings." },
+  ];
+  const LABEL_W = 180, GAP = 14;
+  let explainTimer = 0;
+  function updateExplain() {
+    const layer = $("#callouts");
+    clearTimeout(explainTimer);
+    layer.classList.remove("on");
+    layer.innerHTML = "";
+    const want = explain && (status === "live" || status === "offline") && !isStacked();
+    $("#explainBtn").setAttribute("aria-pressed", String(want));
+    const sw = stage.clientWidth;
+    const width = 396 * scale;
+    const baseLeft = (sw - width) / 2;
+    const needLeft = 20 + LABEL_W + GAP + 12;
+    const maxShift = Math.max(0, sw - 16 - (baseLeft + width));
+    const nextShift = want ? Math.min(maxShift, Math.max(0, needLeft - (baseLeft + 24 * scale))) : 0;
+    if (nextShift !== shiftX) { shiftX = nextShift; applyTransform(); }
+    if (want) explainTimer = setTimeout(() => drawCallouts(layer), reduce ? 0 : 380);
+  }
+  function drawCallouts(layer) {
+    layer.innerHTML = '<svg aria-hidden="true"></svg>';
+    const svg = $("svg", layer);
+    const sr = stage.getBoundingClientRect(), pr = slip.getBoundingClientRect();
+    const bx = pr.left - sr.left - 10;
+    const w = Math.min(LABEL_W, bx - GAP - 16);
+    if (w < 110) return;
+    const items = [];
+    ANAT.forEach((a, i) => {
+      const rows = $$(`.r[data-anat="${a.k}"]`, slip);
+      if (!rows.length) return;
+      const rects = rows.map((r) => r.getBoundingClientRect());
+      const top = Math.min(...rects.map((r) => r.top)) - sr.top;
+      const bottom = Math.max(...rects.map((r) => r.bottom)) - sr.top;
+      const br = document.createElement("div");
+      br.className = "br";
+      br.style.cssText = `left:${bx}px;top:${top}px;height:${Math.max(8, bottom - top)}px`;
+      const co = document.createElement("div");
+      co.className = "co";
+      co.style.cssText = `left:${bx - GAP - w}px;width:${w}px`;
+      co.innerHTML = `<span class="t"><b>${i + 1}</b>${a.t}</span><code>${a.c}</code><span class="d">${a.d}</span>`;
+      layer.append(br, co);
+      items.push({ co, top, bottom });
+    });
+    let prev = -Infinity;
+    items.forEach((it) => {
+      const h = it.co.offsetHeight;
+      const y = Math.max((it.top + it.bottom) / 2 - h / 2, prev + 10);
+      it.co.style.top = y + "px";
+      prev = y + h;
+      const ly = y + 9, ty = Math.min(Math.max(ly, it.top + 4), it.bottom - 4);
+      const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      p.setAttribute("d", `M${bx - GAP + 4} ${ly} L${bx - 4} ${ty} L${bx} ${ty}`);
+      svg.appendChild(p);
+    });
+    setTimeout(() => layer.classList.add("on"), 20);
+  }
+  $("#explainBtn").addEventListener("click", () => { explain = !explain; updateExplain(); });
+
+  function clearLinks() { $$(".field.linked").forEach((f) => f.classList.remove("linked")); $$(".r.hl", slip).forEach((r) => r.classList.remove("hl")); }
+  slip.addEventListener("mouseover", (e) => {
+    clearLinks();
+    const row = e.target.closest(".r.line[data-feature]");
+    if (!row || status !== "live" || busy) return;
+    row.classList.add("hl");
+    const feats = row.dataset.feature.split(" ");
+    const amt = signed(Number(row.dataset.amount));
+    $$(".field[data-field]").forEach((f) => {
+      if (f.dataset.field.split(" ").some((k) => feats.includes(k) || (k === "battery" && feats.some((x) => x.startsWith("battery"))))) {
+        f.classList.add("linked"); $(".flag", f).textContent = amt + " on the slip";
+      }
+    });
+  });
+  slip.addEventListener("mouseleave", clearLinks);
+  form.addEventListener("mouseover", (e) => {
+    $$(".r.hl", slip).forEach((r) => r.classList.remove("hl"));
+    const f = e.target.closest(".field[data-field]");
+    if (!f || status !== "live" || busy) return;
+    const keys = f.dataset.field.split(" ");
+    $$(".r.line[data-feature]", slip).forEach((r) => {
+      const feats = r.dataset.feature.split(" ");
+      if (feats.some((x) => keys.includes(x) || (keys.includes("battery") && x.startsWith("battery")))) r.classList.add("hl");
+    });
+  });
+  form.addEventListener("mouseleave", () => $$(".r.hl", slip).forEach((r) => r.classList.remove("hl")));
+
+
+  async function start() {
+    setStatus("waiting");
+    try {
+      const res = await fetch(`${API}/options`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      OPTS = await res.json();
+    } catch {
+      $("#modelPill").lastChild.textContent = "Model unavailable";
+      $("#ghostCount").textContent = "Can't reach the pricing model";
+      $("#ghostText").textContent = "Refresh the page in a moment.";
+      return;
+    }
+    $("#modelPill").lastChild.textContent = OPTS.model.kind === "mock" ? "Sample prices (mock model)" : "Priced from Nigerian listings";
+    ISSUES.forEach((issue) => { issue.pts = OPTS.condition_rule.points[issue.id] ?? issue.pts; });
+    buildForm();
+    syncForm();
+    printSlip();
+  }
+  start();
+  let resizeTimer = 0;
+  const refit = () => {
+    if (feed.classList.contains("done")) feed.style.height = PAD + slip.offsetHeight + "px";
+    fitMachine(); updateExplain();
+  };
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refit);
+  window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(refit, 120); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+.git
+.claude
+**/.venv
+**/__pycache__
+**/.pytest_cache
+model/data
+notebooks
+design
+docs
+contract

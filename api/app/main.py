@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 from fastapi import APIRouter, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.predictors import get_predictor
 from app.schemas import Appraisal, FormOptions, LaptopSpecs
@@ -56,3 +58,7 @@ def appraise(specs: LaptopSpecs) -> Appraisal:
 
 
 app.include_router(router)
+
+WEB_DIR = Path(__file__).resolve().parents[2] / "web"
+if WEB_DIR.is_dir():
+    app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")
