@@ -1,21 +1,3 @@
-"""Experiments for the Tally price model: features, hyperparameters, model families.
-
-    api/.venv/bin/python model/tune.py baseline
-    api/.venv/bin/python model/tune.py lgb  [trials]
-    api/.venv/bin/python model/tune.py xgb  [trials]
-    api/.venv/bin/python model/tune.py ensemble
-
-Findings (Nov 2026): the series feature (from model_name) and cpu_tier help; weighting
-duplicate listings and adding the 2018 Indian-retail dataset hurt; CatBoost breaks under
-monotone constraints; blending XGBoost into 5 seed-averaged LightGBMs gains only ~0.0004
-RMSLE, so the API ships LightGBM alone.
-
-Every score comes from grouped cross-validation: listings with identical specs (colour
-variants of one laptop) always land in the same fold, so the model is never scored on a
-near-copy of something it trained on. A final test split (15%, also grouped) is set aside
-and never used for tuning.
-"""
-
 from __future__ import annotations
 
 import json
@@ -31,7 +13,7 @@ from sklearn.model_selection import GroupKFold
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import train as T  # noqa: E402
 
-RESULTS = Path(__file__).resolve().parent / "artifacts" / "tuning"  # Optuna history, git-ignored
+RESULTS = Path(__file__).resolve().parent / "artifacts" / "tuning"
 
 
 def split():
@@ -56,8 +38,6 @@ def report(name, scores, extra=""):
     mae, r2, rmsle = scores
     print(f"{name:<40} MAE ₦{mae:>9,.0f}  R² {r2:.4f}  RMSLE {rmsle:.4f} {extra}", flush=True)
 
-
-# ---------------------------------------------------------------- baseline / features
 
 def baseline(dev):
     from concurrent.futures import ThreadPoolExecutor
@@ -88,8 +68,6 @@ def baseline(dev):
             report(k, f.result())
 
 
-# ---------------------------------------------------------------- LightGBM
-
 def lgb_params(trial):
     return {
         **T.PARAMS,
@@ -119,8 +97,6 @@ def lgb_fit_predict(params):
         return np.exp(booster.predict(T.encode(va, feats), num_iteration=booster.best_iteration))
     return fp, rounds
 
-
-# ---------------------------------------------------------------- XGBoost
 
 def xgb_fit(tr, feats, params, rounds, va=None):
     import xgboost as xgb
@@ -162,8 +138,6 @@ def xgb_fit_predict(params):
     return fp, rounds
 
 
-# ---------------------------------------------------------------- search driver
-
 def search(kind, dev, trials):
     import optuna
     optuna.logging.set_verbosity(optuna.logging.WARNING)
@@ -204,7 +178,6 @@ def search(kind, dev, trials):
 
 
 def ensemble(dev):
-    """Out-of-fold predictions from each tuned family, then the best blend of them in log space."""
     from concurrent.futures import ThreadPoolExecutor
 
     def best(kind):

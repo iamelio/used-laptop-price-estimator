@@ -28,10 +28,11 @@ The web app and the model only meet at the API contract, so both can be built at
 | `api/app/predictors/model.py` | The trained model's predictor: loads it, prices a laptop and explains the price |
 | `api/tests/` | Contract tests that every predictor must pass |
 | `contract/` | Generated OpenAPI spec and example request, options and response |
-| `model/train.py` | Downloads the dataset and trains the model. Saved model files go in `model/artifacts/`, which git ignores. |
+| `model/train.py` | Downloads the dataset and trains the model into `model/artifacts/` |
+| `model/artifacts/` | The trained model the API loads. It's committed, so the model works straight after cloning. |
 | `model/tune.py` | Experiments behind the model: features, hyperparameter search, model families |
 | `model/best_lgb.json` | The tuned settings `train.py` uses |
-| `notebooks/laptop_price_model.ipynb` | Colab notebook: loads, cleans and explores the data, compares a linear regression baseline with the model, and explains one price |
+| `notebooks/laptop_price_model.ipynb` | Colab notebook and project report: the data, cleaning, features, a cross-validated comparison of six models, the chosen model, how one price becomes the receipt, limitations, and likely defence questions |
 
 ## Who does what
 
@@ -53,12 +54,7 @@ Interactive docs are then at http://localhost:8000/docs.
 .venv/bin/python -m pytest
 ```
 
-`PREDICTOR=model` switches from the mock to the trained model. The model files aren't in git, so train it once first, from the repo root. It takes about 10 seconds and downloads the dataset on its first run.
-
-```bash
-api/.venv/bin/pip install -r model/requirements.txt
-api/.venv/bin/python model/train.py
-```
+`PREDICTOR=model` switches from the mock to the trained model in `model/artifacts/`:
 
 ```bash
 cd api
@@ -66,9 +62,16 @@ PREDICTOR=model .venv/bin/python -m pytest
 PREDICTOR=model .venv/bin/uvicorn app.main:app --reload
 ```
 
+Retrain after changing the data or the model, from the repo root. It takes under a minute and downloads the dataset on its first run.
+
+```bash
+api/.venv/bin/pip install -r model/requirements.txt
+api/.venv/bin/python model/train.py
+```
+
 ## The model
 
-A LightGBM model trained on 2,160 laptop listings from a 2023 European retailer, converted to naira at €1 = ₦1,700. The data has no year or laptop-type column, so `train.py` works them out from the listing title and CPU. On laptops it never saw in training:
+A LightGBM model trained on 2,061 of 2,160 laptop listings from a 2023 European retailer (the other 99 have no year that can be worked out), converted to naira at €1 = ₦1,700. The data has no year or laptop-type column, so `train.py` works them out from the listing title and CPU. On laptops it never saw in training:
 
 | Measure | Result |
 |---|---|
@@ -77,11 +80,21 @@ A LightGBM model trained on 2,160 laptop listings from a 2023 European retailer,
 | R² | 0.82 |
 | Real price inside the "likely between" range | 80% |
 
-Each slip line comes from the model's SHAP values. Condition, battery and any age past the 7 years the data covers are fixed adjustments, marked `source="adjustment"`, since the data has no columns for them.
+Each slip line comes from the model's SHAP values. Condition and battery are fixed adjustments, marked `source="adjustment"`, since the data has no columns for them. Ages past the 7 years the data covers carry on the depreciation the model learned, shown on the same Age line, for example "Age, 13 years (6 estimated)".
 
-**Known limits:** prices come from a European shop, not the Nigerian used market, so estimates run high. Few listings are more than 5 years old.
+`model/tune.py` holds the experiments behind these choices: `baseline`, `lgb`, `xgb` and `ensemble` (for example `api/.venv/bin/python model/tune.py lgb 100`). What they found:
+
+- **Helped:** reading the product line from `model_name`, and a CPU performance tier.
+- **Hurt:** down-weighting duplicate listings, and adding a 2018 Indian retail dataset.
+- **Ruled out:** CatBoost breaks under monotonic constraints, and blending in XGBoost gains almost nothing (about 0.0004 RMSLE), so the API uses LightGBM alone.
+
+**Known limits:**
+
+- **Price level:** prices come from a European shop, not the Nigerian used market, so estimates run high.
+- **Older laptops:** few listings are more than 5 years old.
+- **Newest chips:** Apple M3 and M4 aren't in the data, so they're priced like an M2 of the same age and marked "(estimated)".
 
 ## Status
 
 - **Done:** API contract, mock pricer, contract tests, UI prototype, dataset and trained model.
-- **Next:** React frontend built from the prototype, and hosting. The host has to run `model/train.py` at build time.
+- **Next:** React frontend built from the prototype, hosting, and calibrating prices to the Nigerian used market.

@@ -1,19 +1,3 @@
-"""Train the Tally price model.
-
-Run from the repo root:
-
-    api/.venv/bin/python model/train.py
-
-Writes model/artifacts/model_0.txt ... model_4.txt (LightGBM, one per seed) and
-model/artifacts/meta.json, which ModelPredictor in api/app/predictors/model.py loads at
-startup. Hyperparameters come from model/best_lgb.json, which model/tune.py writes.
-
-Dataset: 2,160 laptop listings (new and refurbished) scraped from a Spanish retailer
-in 2023, published on Kaggle by Juan Merino and mirrored for ML Zoomcamp. Prices are
-in euros. The dataset has no release-year or laptop-type column, so both are derived
-from the listing title: year from the CPU generation, type from the product line.
-"""
-
 from __future__ import annotations
 
 import json
@@ -30,15 +14,11 @@ ROOT = Path(__file__).resolve().parent
 DATA_URL = "https://raw.githubusercontent.com/alexeygrigorev/datasets/master/laptops.csv"
 DATA_PATH = ROOT / "data" / "laptops.csv"
 ARTIFACTS = ROOT / "artifacts"
-TUNED = ROOT / "best_lgb.json"  # tracked in git, so a fresh clone trains the tuned model
+TUNED = ROOT / "best_lgb.json"
 
-# The listings were collected in 2023, so a laptop's age in the data is 2023 - year.
 DATA_YEAR = 2023
-# Euro to naira. Update this when the rate moves; retraining takes seconds.
 EUR_TO_NGN = 1_700
 SEED = 42
-# Oldest year the form offers, same as the mock. Years past the data's oldest are priced by
-# carrying on the learned depreciation (extra_age_multiplier), so they still get a fair price.
 YEAR_MIN = 2012
 
 BRANDS = ["Acer", "Apple", "Asus", "Dell", "Gigabyte", "HP", "Lenovo", "LG", "Microsoft",
@@ -47,7 +27,6 @@ LAPTOP_TYPES = ["Notebook", "Ultrabook", "Gaming", "2-in-1", "Workstation"]
 CPUS = ["Intel Celeron / Pentium", "AMD Athlon / budget", "Intel Core i3", "Intel Core i5",
         "Intel Core i7", "Intel Core i9", "AMD Ryzen 3", "AMD Ryzen 5", "AMD Ryzen 7", "AMD Ryzen 9",
         "Apple M1", "Apple M1 Pro", "Apple M2", "Apple M2 Pro", "Other"]
-# Product lines with at least 8 listings, read from the seller's free-text model_name.
 # Generic words ("Go", "Thin", "Edge") are left out because they match too much free text.
 SERIES = ["15S", "IdeaPad", "ROG", "ThinkPad", "VivoBook", "MacBook Pro", "TUF", "V15", "Chromebook",
           "MacBook Air", "ExpertBook", "ZenBook", "ThinkBook", "Latitude", "Creator", "Modern",
@@ -59,21 +38,19 @@ SERIES = ["15S", "IdeaPad", "ROG", "ThinkPad", "VivoBook", "MacBook Pro", "TUF",
 # Rough performance tier per CPU family, so the trees can share what they learn across vendors.
 CPU_TIER = {"Intel Celeron / Pentium": 0, "AMD Athlon / budget": 0, "Intel Core i3": 1, "AMD Ryzen 3": 1,
             "Intel Core i5": 2, "AMD Ryzen 5": 2, "Apple M1": 2.5, "Intel Core i7": 3, "AMD Ryzen 7": 3,
-            "Apple M2": 3, "Apple M1 Pro": 3.5, "Intel Core i9": 4, "AMD Ryzen 9": 4, "Apple M2 Pro": 4}
+            "Apple M2": 3, "Apple M1 Pro": 3.5, "Intel Core i9": 4, "AMD Ryzen 9": 4, "Apple M2 Pro": 4,
+            "Apple M3": 3, "Apple M4": 3}
+# The data ends in 2023, so newer chips are priced as the closest chip it has, at their own age.
+CPU_ALIASES = {"Apple M3": "Apple M2", "Apple M4": "Apple M2"}
+CPU_OPTIONS = CPUS[:-1] + list(CPU_ALIASES) + ["Other"]
 CATEGORY_VALUES = {"brand": BRANDS, "laptop_type": LAPTOP_TYPES, "cpu": CPUS, "series": SERIES}
 
-# Model columns, in order. Each is a LaptopSpecs field except `age` (shown as the `year` line),
-# `series` (read from `model_name`), `cpu_tier` (read from `cpu`, shown on the cpu line) and `refurbished` (always 1 when pricing, folded into the
-# starting point).
 FEATURES = ["brand", "laptop_type", "cpu", "series", "cpu_tier", "ram_gb", "storage_gb", "storage_type", "gpu",
             "screen_inches", "age", "refurbished"]
 CATEGORICAL = ["brand", "laptop_type", "cpu", "series"]
 MONOTONE = {"ram_gb": 1, "storage_gb": 1, "age": -1, "cpu_tier": 1}
-# Columns a seller can leave blank. Training adds copies of rows with each one blanked.
 OPTIONAL = ["gpu", "screen_inches", "series"]
 
-
-# ---------------------------------------------------------------- feature derivation
 
 def brand_of(raw: str) -> str:
     raw = "Toshiba" if "Toshiba" in raw else raw
@@ -96,7 +73,6 @@ _SERIES_PATTERNS = [(s, re.compile(rf"(?<![a-z0-9]){re.escape(s)}(?![a-z])", re.
 
 
 def series_of(text: str | None) -> str | None:
-    """Product line named in free text, "Other" when none matches, None when there's no text."""
     if text is None or not str(text).strip():
         return None
     for name, pattern in _SERIES_PATTERNS:
@@ -114,7 +90,6 @@ APPLE_YEAR = {"Apple M1": 2020, "Apple M1 Pro": 2021, "Apple M2": 2022, "Apple M
 
 
 def year_of(title: str, cpu_raw: str) -> float:
-    """Release year, from the title's own year if it has one, else from the CPU generation."""
     if m := re.search(r"\b(201[5-9]|202[0-4])\b", title):
         return int(m.group(1))
     if cpu_raw in APPLE_YEAR:
@@ -186,11 +161,8 @@ def load_dataset() -> pd.DataFrame:
 
 
 def spec_groups(df: pd.DataFrame) -> np.ndarray:
-    """Listings with identical model inputs (usually colour variants) share a group id."""
     return pd.util.hash_pandas_object(df[FEATURES], index=False).factorize()[0]
 
-
-# ---------------------------------------------------------------- LightGBM
 
 def encode(df: pd.DataFrame, features: list[str] = FEATURES) -> np.ndarray:
     cols = []
@@ -205,7 +177,6 @@ def encode(df: pd.DataFrame, features: list[str] = FEATURES) -> np.ndarray:
 
 def with_unknowns(df: pd.DataFrame, rng: np.random.Generator, features: list[str] = FEATURES,
                   frac: float = 0.2) -> pd.DataFrame:
-    """Copies of some rows with an optional answer blanked, so the model learns what "not sure" is worth."""
     copies = [df]
     for col in OPTIONAL:
         if col in features:
@@ -243,10 +214,8 @@ def fit(train: pd.DataFrame, rounds: int, valid: pd.DataFrame | None = None,
     return lgb.train(params, dtrain, num_boost_round=rounds, valid_sets=sets, callbacks=callbacks)
 
 
-# ---------------------------------------------------------------- final training
-
 def holdout_split(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """15% test set, grouped so colour variants of one laptop never straddle the split."""
+    # Grouped, so colour variants of one laptop never straddle the split.
     from sklearn.model_selection import GroupShuffleSplit
     gss = GroupShuffleSplit(n_splits=1, test_size=0.15, random_state=SEED)
     dev_idx, test_idx = next(gss.split(df, groups=spec_groups(df)))
@@ -254,7 +223,6 @@ def holdout_split(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
 
 
 def tuned() -> tuple[dict, int, int]:
-    """Hyperparameters, boosting rounds and seed count from model/tune.py, or the defaults."""
     if not TUNED.exists():
         return PARAMS, 600, 1
     best = json.loads(TUNED.read_text())
@@ -262,7 +230,6 @@ def tuned() -> tuple[dict, int, int]:
 
 
 def fit_seeds(train: pd.DataFrame, params: dict, rounds: int, seeds: int) -> list[lgb.Booster]:
-    """Several boosters that differ only in their random seed. Their average is steadier than any one."""
     boosters = []
     for k in range(seeds):
         rng = np.random.default_rng(SEED + k)
@@ -284,13 +251,12 @@ def main() -> None:
     params, rounds, seeds = tuned()
     print(f"{len(df)} rows ({len(dev)} dev, {len(test)} test); {rounds} rounds x {seeds} seeds")
 
-    # Out-of-fold predictions on dev set the fair range: real price / predicted price, 10th to 90th percentile.
+    # The fair range is the 10th to 90th percentile of real price / out-of-fold prediction.
     oof = np.zeros(len(dev))
     for tr, va in GroupKFold(5, shuffle=True, random_state=SEED).split(dev, groups=spec_groups(dev)):
         oof[va] = predict(fit_seeds(dev.iloc[tr], params, rounds, seeds), dev.iloc[va])
     low_q, high_q = np.quantile(dev["price_ngn"] / oof, [0.1, 0.9])
 
-    # Held-out test score, from a model that never saw the test rows.
     pred = predict(fit_seeds(dev, params, rounds, seeds), test)
     y = test["price_ngn"].to_numpy()
     mae, r2 = mean_absolute_error(y, pred), r2_score(y, pred)
@@ -299,10 +265,9 @@ def main() -> None:
     print(f"test: MAE ₦{mae:,.0f}, R² {r2:.3f}, median error {mape:.1%}, "
           f"80% range {low_q:.3f}–{high_q:.3f} covers {coverage:.0%}")
 
-    # Final model: every row, slightly more rounds since it has ~18% more data than each CV fold.
+    # The final model sees every row, so it gets slightly more rounds than each CV fold (~18% more data).
     final = fit_seeds(df, params, int(rounds * 1.15), seeds)
-    # The data stops at age MAX_AGE, and past it the trees go flat. Measure the average yearly
-    # depreciation the model learned across 0..max_age, so pricing can carry that trend on.
+    # Past the oldest age in the data the trees go flat, so measure the yearly depreciation they learned.
     max_age = int(df["age"].max())
     as_used = df.assign(refurbished=1.0)
     gap = np.log(predict(final, as_used.assign(age=float(max_age)))) - np.log(predict(final, as_used.assign(age=0.0)))
@@ -320,6 +285,8 @@ def main() -> None:
         "brands": BRANDS,
         "laptop_types": LAPTOP_TYPES,
         "cpus": CPUS,
+        "cpu_options": CPU_OPTIONS,
+        "cpu_aliases": CPU_ALIASES,
         "cpu_tier": CPU_TIER,
         "series": SERIES,
         "ram_gb": sorted(int(v) for v in df["ram_gb"].value_counts().loc[lambda s: s >= 10].index),

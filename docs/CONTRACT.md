@@ -69,7 +69,7 @@ The schema enforces the first two, and the tests check the rest.
 1. **The slip adds up exactly:** `base_value + sum(amounts) == estimate`, to the naira.
 2. **The estimate sits inside the range.**
 3. **`condition_grade` comes from the shared rule,** never a separate guess.
-4. **Each line's `feature` is a `LaptopSpecs` field name,** such as `ram_gb` or `battery_runtime`. The frontend uses it to link a slip line to its form field.
+4. **Each line's `feature` is a `LaptopSpecs` field name,** such as `ram_gb` or `battery_runtime`, and each field appears on at most one line. The frontend uses it to link a slip line to its form field.
 5. **No zero-amount lines.**
 6. **Unknown answers don't print as "None".**
 7. **When `battery_health_pct` is given, there's no `battery_runtime` line.**

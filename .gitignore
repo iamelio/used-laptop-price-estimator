@@ -5,6 +5,5 @@ node_modules/
 dist/
 .claude/
 .DS_Store
-model/artifacts/*
-!model/artifacts/.gitkeep
+model/artifacts/tuning/
 model/data/

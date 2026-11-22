@@ -15,9 +15,7 @@ from app.schemas import Appraisal, FormOptions, LaptopSpecs, ModelInfo
 
 ARTIFACTS_DIR = Path(__file__).resolve().parents[3] / "model" / "artifacts"
 
-# The training data has no condition or battery columns, so these apply after the model as
-# fixed multipliers (source="adjustment"). The model prices a refurbished laptop, which
-# sellers grade as like new, so like new is the 1.0 point.
+# The model prices a refurbished laptop, which sellers grade as like new, so like new is the 1.0 point.
 GRADES = {"like_new": (1.00, "Like new"), "good": (0.95, "Good"), "fair": (0.85, "Fair"), "worn": (0.70, "Worn")}
 RUNTIMES = {
     "all_day": (1.00, "Battery: all day"),
@@ -38,11 +36,11 @@ class ModelPredictor(Predictor):
         if not meta_path.exists():
             raise FileNotFoundError(f"No trained model in {artifacts_dir}. Run: api/.venv/bin/python model/train.py")
         self.meta = json.loads(meta_path.read_text())
-        # Several boosters trained with different seeds. Their SHAP values average like their predictions.
         self.boosters = [lgb.Booster(model_file=str(artifacts_dir / name)) for name in self.meta["models"]]
         self.features: list[str] = self.meta["features"]
         self.max_age: int = self.meta["max_age"]
         self.extra_age_multiplier: float = self.meta["extra_age_multiplier"]
+        self.cpu_aliases: dict[str, str] = self.meta.get("cpu_aliases", {})
         self.series_patterns = [
             (name, re.compile(rf"(?<![a-z0-9]){re.escape(name)}(?![a-z])", re.I))
             for name in sorted(self.meta["series"][:-1], key=len, reverse=True)
@@ -58,7 +56,7 @@ class ModelPredictor(Predictor):
         self._options = FormOptions(
             brands=self.meta["brands"],
             laptop_types=self.meta["laptop_types"],
-            cpus=self.meta["cpus"],
+            cpus=self.meta.get("cpu_options", self.meta["cpus"]),
             ram_gb=self.meta["ram_gb"],
             storage_gb=self.meta["storage_gb"],
             screen_inches=self.meta["screen_inches"],
@@ -72,7 +70,6 @@ class ModelPredictor(Predictor):
         return self._options
 
     def _series(self, model_name: str | None) -> str | None:
-        """Product line named in model_name; "Other" when none matches, None when it's blank."""
         if not model_name or not model_name.strip():
             return None
         return next((name for name, pattern in self.series_patterns if pattern.search(model_name)), "Other")
@@ -86,7 +83,7 @@ class ModelPredictor(Predictor):
         values = {
             "brand": index(specs.brand, self.meta["brands"], "Other"),
             "laptop_type": index(specs.laptop_type, self.meta["laptop_types"]),
-            "cpu": index(specs.cpu, self.meta["cpus"], "Other"),
+            "cpu": index(self.cpu_aliases.get(specs.cpu, specs.cpu), self.meta["cpus"], "Other"),
             "series": math.nan if series is None else index(series, self.meta["series"]),
             "cpu_tier": float(self.meta["cpu_tier"].get(specs.cpu, math.nan)),
             "ram_gb": float(specs.ram_gb),
@@ -99,19 +96,19 @@ class ModelPredictor(Predictor):
         }
         return np.array([[values[name] for name in self.features]])
 
-    def _label(self, feature: str, specs: LaptopSpecs, age: int, series: str | None) -> str:
-        if feature == "year":
-            if age > self.max_age:
-                return f"Age, first {self.max_age} years"
-            return f"Age, {age} year{'s' if age != 1 else ''}"
-        if feature == "model_name":
+    def _label(self, field: str, specs: LaptopSpecs, age: int, series: str | None) -> str:
+        if field == "year":
+            years = f"Age, {age} year{'s' if age != 1 else ''}"
+            return f"{years} ({age - self.max_age} estimated)" if age > self.max_age else years
+        if field == "model_name":
             if series is None:
                 return "Model not given"
             return f"{series} series" if series != "Other" else f"{specs.model_name.strip()} model"
+        if field == "cpu":
+            return f"{specs.cpu} (estimated)" if specs.cpu in self.cpu_aliases else specs.cpu
         labels = {
             "brand": f"{specs.brand} brand",
             "laptop_type": f"{specs.laptop_type} build",
-            "cpu": specs.cpu,
             "ram_gb": f"{specs.ram_gb} GB RAM",
             "storage_gb": f"{_storage_label(specs.storage_gb)} storage",
             "storage_type": "Hard drive or eMMC, not SSD" if specs.storage_type == "hdd" else "SSD storage",
@@ -121,49 +118,47 @@ class ModelPredictor(Predictor):
             "screen_inches": f'{specs.screen_inches:g}" screen' if specs.screen_inches is not None
             else "Screen size not known",
         }
-        return labels[feature]
+        return labels[field]
 
     def appraise(self, specs: LaptopSpecs) -> Appraisal:
         age = max(0, datetime.now().year - specs.year)
         series = self._series(specs.model_name)
-        # The model only knows ages up to max_age; older years are priced by an adjustment below.
         row = self._row(specs, min(age, self.max_age), series)
         # TreeSHAP, computed by LightGBM itself: one value per column, plus the expected value last.
         phi = np.mean([booster.predict(row, pred_contrib=True)[0] for booster in self.boosters], axis=0)
 
-        # Columns that came from the same LaptopSpecs field become one slip line.
         field_of = {"age": "year", "series": "model_name", "cpu_tier": "cpu"}
-        shap_by_feature: dict[str, float] = {}
+        shap_by_field: dict[str, float] = {}
         for column, value in zip(self.features, phi[:-1]):
             field = field_of.get(column, column)
-            shap_by_feature[field] = shap_by_feature.get(field, 0.0) + float(value)
+            shap_by_field[field] = shap_by_field.get(field, 0.0) + float(value)
 
-        # The model is in log(naira). The "refurbished" column is fixed for every request, so it
+        # The model works in log(naira), and "refurbished" is the same for every request, so it
         # becomes part of the starting point: the average price of a second-hand laptop.
-        base_log = phi[-1] + shap_by_feature.pop("refurbished", 0.0)
+        base_log = phi[-1] + shap_by_field.pop("refurbished", 0.0)
         base_value = math.exp(base_log)
-        model_estimate = math.exp(base_log + sum(shap_by_feature.values()))
-        total_phi = sum(shap_by_feature.values())
+        total_phi = sum(shap_by_field.values())
+        model_estimate = math.exp(base_log + total_phi)
 
-        contributions: list[RawContribution] = []
-        for feature, value in shap_by_feature.items():
+        amounts: dict[str, float] = {}
+        for field, value in shap_by_field.items():
             if abs(total_phi) > 1e-9:
-                amount = (model_estimate - base_value) * value / total_phi
+                amounts[field] = (model_estimate - base_value) * value / total_phi
             else:
-                amount = base_value * value
-            contributions.append((feature, self._label(feature, specs, age, series), amount, "model"))
+                amounts[field] = base_value * value
+        price = base_value + sum(amounts.values())
 
-        price = base_value + sum(c[2] for c in contributions)
-        grade_multiplier, grade_name = GRADES[grade_from_issues(specs.issues)]
-        adjustments = []
+        # Past the oldest age in the data the trees go flat, so carry on the yearly depreciation they learned.
         if (extra := age - self.max_age) > 0:
-            # Carries on the yearly depreciation the model learned over the ages it has data for.
-            adjustments.append((
-                "year",
-                f"Age, {extra} more year{'s' if extra != 1 else ''} (estimated)",
-                self.extra_age_multiplier**extra,
-            ))
-        adjustments.append(("issues", f"{grade_name} condition", grade_multiplier))
+            older = price * (self.extra_age_multiplier**extra - 1)
+            amounts["year"] = amounts.get("year", 0.0) + older
+            price += older
+
+        contributions: list[RawContribution] = [
+            (field, self._label(field, specs, age, series), amount, "model") for field, amount in amounts.items()
+        ]
+        grade_multiplier, grade_name = GRADES[grade_from_issues(specs.issues)]
+        adjustments = [("issues", f"{grade_name} condition", grade_multiplier)]
         if specs.battery_health_pct is not None:
             adjustments.append((
                 "battery_health_pct",

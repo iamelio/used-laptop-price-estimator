@@ -80,6 +80,8 @@ def test_slip_is_well_formed(predictor, changes):
     assert slip.base_value + sum(c.amount for c in slip.contributions) == slip.estimate
     assert slip.range.low <= slip.estimate <= slip.range.high
     assert slip.condition_grade == grade_from_issues(laptop.issues)
+    features = [line.feature for line in slip.contributions]
+    assert len(features) == len(set(features)), f"an answer has more than one line: {features}"
     for line in slip.contributions:
         assert line.feature in LaptopSpecs.model_fields, f"{line.feature!r} isn't a LaptopSpecs field"
         assert line.amount != 0, "zero lines should be dropped"
@@ -89,6 +91,13 @@ def test_slip_is_well_formed(predictor, changes):
 def test_exact_battery_health_takes_priority(predictor):
     slip = predictor.appraise(specs(battery_health_pct=70))
     assert not any(line.feature == "battery_runtime" for line in slip.contributions)
+
+
+def test_newest_apple_chips_can_be_priced(predictor):
+    for chip in ("Apple M3", "Apple M4"):
+        assert chip in predictor.options().cpus
+        laptop = specs(brand="Apple", model_name="MacBook Air", laptop_type="Ultrabook", cpu=chip, year=2024)
+        assert predictor.appraise(laptop).estimate > 0
 
 
 def test_newer_is_not_cheaper(predictor):
