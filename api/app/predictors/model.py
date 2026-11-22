@@ -31,7 +31,7 @@ def _storage_label(gb: int) -> str:
 
 
 class ModelPredictor(Predictor):
-    def __init__(self, artifacts_dir: Path = ARTIFACTS_DIR) -> None:
+    def __init__(self, artifacts_dir: Path = ARTIFACTS_DIR, calibrated: bool = True) -> None:
         meta_path = artifacts_dir / "meta.json"
         if not meta_path.exists():
             raise FileNotFoundError(f"No trained model in {artifacts_dir}. Run: api/.venv/bin/python model/train.py")
@@ -45,12 +45,14 @@ class ModelPredictor(Predictor):
             (name, re.compile(rf"(?<![a-z0-9]){re.escape(name)}(?![a-z])", re.I))
             for name in sorted(self.meta["series"][:-1], key=len, reverse=True)
         ]
+        self.market: dict | None = self.meta.get("market") if calibrated else None
+        scores = self.market or self.meta
         self.info = ModelInfo(
             kind="trained",
-            name="LightGBM price model",
+            name="LightGBM price model, calibrated to Nigerian listings" if self.market else "LightGBM price model",
             version=self.meta["version"],
-            mae=self.meta["mae"],
-            r2=self.meta["r2"],
+            mae=scores["mae"],
+            r2=scores["r2"],
             trained_on_rows=self.meta["trained_on_rows"],
         )
         self._options = FormOptions(
@@ -154,6 +156,13 @@ class ModelPredictor(Predictor):
             amounts["year"] = amounts.get("year", 0.0) + older
             price += older
 
+        # The training prices come from a European shop, so scale the whole receipt to the Nigerian used market.
+        if self.market:
+            factor = self.market["factor"]
+            base_value *= factor
+            amounts = {field: amount * factor for field, amount in amounts.items()}
+            price *= factor
+
         contributions: list[RawContribution] = [
             (field, self._label(field, specs, age, series), amount, "model") for field, amount in amounts.items()
         ]
@@ -172,7 +181,7 @@ class ModelPredictor(Predictor):
             contributions.append((feature, label, price * (multiplier - 1), "adjustment"))
             price *= multiplier
 
-        low_ratio, high_ratio = self.meta["range_ratio"]
+        low_ratio, high_ratio = (self.market or self.meta)["range_ratio"]
         return build_appraisal(
             specs=specs,
             base_value=base_value,

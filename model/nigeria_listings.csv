@@ -1,0 +1,81 @@
+jiji_page,title,price_ngn,condition,brand,model_name,laptop_type,year,cpu,ram_gb,storage_gb,storage_type,gpu,year_evidence
+1,Laptop Asus VivoBook S15 S510UA 16GB Intel Core i7 SSD 512GB,300000,Used,Asus,VivoBook S15,Notebook,2017,Intel Core i7,16,512,ssd,,description: 7th generation
+1,Laptop Lenovo ThinkPad T480 8GB Intel Core i5 SSD 256GB,260000,Used,Lenovo,ThinkPad T480,Notebook,2018,Intel Core i5,8,256,ssd,,description: 8th generation
+1,Laptop Dell Latitude 5420 8GB Intel Core i5 SSD 256GB,350000,Used,Dell,Latitude 5420,Notebook,2021,Intel Core i5,8,256,ssd,,model: Latitude 5420 (2021)
+1,Laptop HP ProBook 440 G7 8GB Intel Core i5 SSD 256GB,290000,Used,HP,ProBook 440 G7,Notebook,2020,Intel Core i5,8,256,ssd,,description: 10th gen
+1,Laptop Apple MacBook Pro 2020 32GB Intel Core i7 SSD 1T,750000,Used,Apple,MacBook Pro,Ultrabook,2020,Intel Core i7,32,1024,ssd,,title: 2020
+1,Laptop Asus TUF Gaming A15 16GB Intel Core i7 SSD 512GB,1000000,Used,Asus,TUF Gaming A15,Gaming,2022,Intel Core i7,16,512,ssd,dedicated,"description: 12th gen, RTX 3060"
+1,Laptop Dell Latitude 7389 16GB Intel Core i7 SSD 256GB,310000,Used,Dell,Latitude 7389,2-in-1,2017,Intel Core i7,16,256,ssd,,"description: 7th generation, 2-in-1"
+1,Laptop HP EliteBook 840 G6 8GB Intel Core i7 SSD 256GB,325000,Used,HP,EliteBook 840 G6,Notebook,2019,Intel Core i7,8,256,ssd,,model: EliteBook 840 G6 (2019)
+1,Laptop HP EliteBook 830 G8 16GB Intel Core i5 SSD 256GB,480000,Used,HP,EliteBook 830 G8,2-in-1,2021,Intel Core i5,16,256,ssd,,"description: 11th gen, x360 touchscreen"
+1,Laptop HP ZBook Firefly 14 G7 16GB Intel Core i5 SSD 512GB,404488,Refurbished,HP,ZBook Firefly 14 G7,Workstation,2020,Intel Core i5,16,512,ssd,,model: ZBook Firefly G7 (2020)
+1,Laptop HP Dragonfly G3 16GB Intel Core i5 SSD 256GB,500000,Used,HP,Elite Dragonfly G3,Ultrabook,2022,Intel Core i5,16,256,ssd,,description: 12th generation
+1,Laptop Apple MacBook Air 2022 M2 16GB Apple M2 SSD 512GB,900000,Used,Apple,MacBook Air,Ultrabook,2022,Apple M2,16,512,ssd,,title: 2022 M2
+1,Laptop HP EliteBook 840 G7 16GB Intel Core i5 SSD 256GB,385000,Used,HP,EliteBook 840 G7,Notebook,2020,Intel Core i5,16,256,ssd,,description: 10th gen
+1,Laptop HP ZBook Firefly G8 16GB Intel Core i7 SSD 512GB,510000,Used,HP,ZBook Firefly G8,Workstation,2021,Intel Core i7,16,512,ssd,,description: 11th gen
+1,Laptop HP EliteBook 840 G7 32GB Intel Core i7 SSD 512GB,540000,Used,HP,EliteBook 840 G7,Notebook,2020,Intel Core i7,32,512,ssd,,description: 10th gen
+1,Laptop HP Spectre X360 13t 16GB Intel Core i7 SSD 512GB,680000,Used,HP,Spectre x360 13,2-in-1,2018,Intel Core i7,16,512,ssd,,model: Spectre x360 13-ap0xx (2018)
+1,Laptop Asus ROG GL553VE 16GB Intel Core i5 SSD 512GB,400000,Used,Asus,ROG GL553VE,Gaming,2017,Intel Core i5,16,512,ssd,dedicated,"description: 7th generation, GTX 1050"
+1,Laptop HP Pavilion 15 16GB Intel Core i5 SSD 256GB,300000,Used,HP,Pavilion 15,Notebook,2016,Intel Core i5,16,256,ssd,,description: 6th generation
+1,Laptop Lenovo ThinkPad T450 8GB Intel Core i7 SSD 128GB,160000,Used,Lenovo,ThinkPad T450s,Notebook,2015,Intel Core i7,8,128,ssd,,description: i7-5300U (5th gen)
+2,Laptop HP EliteBook x360 1030 G2 16GB Intel Core i7 SSD 512GB,410000,Used,HP,EliteBook x360 1030 G2,2-in-1,2017,Intel Core i7,16,512,ssd,,description: 7th gen
+2,Laptop Apple MacBook Pro 2020 M1 8GB Apple M1 Pro SSD 1T,850000,Used,Apple,MacBook Pro 13,Ultrabook,2020,Apple M1,8,1024,ssd,,"description: 13-inch 2020, Apple M1"
+2,Laptop Apple MacBook Pro 2019 32GB Intel Core i7 SSD 1T,800000,Used,Apple,MacBook Pro 15,Ultrabook,2019,Intel Core i7,32,1024,ssd,dedicated,"title: 2019, Radeon Pro"
+2,Laptop Dell Inspiron 13 7300 8GB Intel Core i5 SSD 256GB,260000,Used,Dell,Latitude 7300,Notebook,2019,Intel Core i5,8,256,ssd,,description: Latitude 7300 (2019)
+2,Laptop Lenovo ThinkPad T460 8GB Intel Core i5 SSD 256GB,180000,Used,Lenovo,ThinkPad T460p,Notebook,2016,Intel Core i5,8,256,ssd,,model: ThinkPad T460p (2016)
+2,Laptop HP EliteBook x360 830 G6 8GB Intel Core i5 SSD 256GB,380000,Used,HP,EliteBook x360 830 G6,2-in-1,2019,Intel Core i5,8,256,ssd,,model: EliteBook x360 830 G6 (2019)
+2,Laptop Dell Latitude 3310 8GB Intel Core i5 SSD 256GB,350000,Used,Dell,Latitude 3310 2-in-1,2-in-1,2019,Intel Core i5,8,256,ssd,,"description: 8th generation, 2-in-1"
+2,Laptop HP ProBook 640 G8 16GB Intel Core i5 SSD 512GB,404250,Refurbished,HP,ProBook 640 G8,Notebook,2021,Intel Core i5,16,512,ssd,,model: ProBook 640 G8 (2021)
+2,Laptop Dell Latitude 7390 2-in-1 8GB Intel Core i5 SSD 256GB,350000,Used,Dell,Latitude 7390 2-in-1,2-in-1,2018,Intel Core i5,8,256,ssd,,description: 8th gen
+2,Laptop Dell XPS 13 16GB Intel Core i7 SSD 512GB,495000,Used,Dell,XPS 13 9365,2-in-1,2017,Intel Core i7,16,512,ssd,,description: XPS 13 9365 2-in-1 (2017)
+2,Laptop Lenovo Chromebook N42 4GB Intel Celeron SSD 32GB,65000,Used,Lenovo,Chromebook N42,Notebook,2017,Intel Celeron / Pentium,4,32,hdd,,"model: Chromebook N42 (2017), eMMC"
+2,Laptop HP EliteBook 840 G6 8GB Intel Core i5 SSD 256GB,340000,Used,HP,EliteBook 840 G6,Notebook,2019,Intel Core i5,8,256,ssd,,model: EliteBook 840 G6 (2019)
+2,Laptop HP EliteBook 830 G7 16GB Intel Core i7 SSD 512GB,650000,Used,HP,EliteBook x360 830 G7,2-in-1,2020,Intel Core i7,16,512,ssd,,"description: x360, 10th generation"
+2,Laptop HP EliteBook 830 G6 8GB Intel Core i5 SSD 256GB,300000,Used,HP,EliteBook 830 G6,Notebook,2019,Intel Core i5,8,256,ssd,,model: EliteBook 830 G6 (2019)
+2,Laptop HP ZBook Fury 16 G9 32GB Nvidia SSD 1T,1600000,Used,HP,ZBook Fury 16 G9,Workstation,2022,Intel Core i7,32,1024,ssd,dedicated,"description: i7-12850HX, 12GB GPU"
+3,Laptop Asus Zenbook Duo 14 8GB Intel Core i7 SSD 512GB,980000,Used,Asus,ZenBook Duo 14,Ultrabook,2021,Intel Core i7,8,512,ssd,,description: UX482 (2021 model)
+3,Laptop Toshiba Satellite C850 8GB Intel Core i5 SSD 128GB,180000,Used,Toshiba,Satellite C850,Notebook,2012,Intel Core i5,8,128,ssd,,model: Satellite C850 (2012)
+3,Laptop Dell Precision 7530 16GB Intel Core i7 SSD 1T,570000,Used,Dell,Precision 7530,Workstation,2018,Intel Core i7,16,1024,ssd,,description: 8th generation
+3,Laptop Dell Latitude 9520 16GB Intel Core i7 SSD 512GB,500000,Used,Dell,Latitude 9520,Notebook,2021,Intel Core i7,16,512,ssd,,description: 11th gen
+3,Laptop Dell Latitude 7280 8GB Intel Core i5 SSD 256GB,250000,Used,Dell,Latitude 7280,Notebook,2017,Intel Core i5,8,256,ssd,,model: Latitude 7280 (2017)
+3,Laptop Dell XPS 13 7390 2-in-1 16GB Intel Core i7 SSD 512GB,750000,Used,Dell,XPS 13 7390 2-in-1,2-in-1,2019,Intel Core i7,16,512,ssd,,description: 10th generation
+3,Laptop HP EliteBook x360 1030 G2 16GB Intel Core i7 SSD 256GB,450000,Used,HP,EliteBook x360 1030 G2,2-in-1,2017,Intel Core i7,16,256,ssd,,model: EliteBook x360 1030 G2 (2017)
+3,Laptop Dell Latitude 11 3190 8GB Intel Pentium SSD 128GB,180000,Used,Dell,Latitude 3190 2-in-1,2-in-1,2018,Intel Celeron / Pentium,8,128,ssd,,model: Latitude 3190 2-in-1 (2018)
+3,Laptop Apple MacBook 2014 8GB Intel Core i5 SSD 128GB,180000,Used,Apple,MacBook Air 11,Ultrabook,2015,Intel Core i5,8,128,ssd,,description: 2015 MacBook Air 11
+3,Laptop Lenovo ThinkPad X1 Carbon 16GB Intel Core i7 SSD 512GB,400000,Used,Lenovo,ThinkPad X1 Carbon Gen 8,Ultrabook,2020,Intel Core i7,16,512,ssd,,"description: gen 8, 10th gen"
+3,Laptop Apple MacBook Air 2015 4GB Intel Core i5 SSD 128GB,170000,Used,Apple,MacBook Air 11,Ultrabook,2015,Intel Core i5,4,128,ssd,,title: 2015
+3,Laptop HP EliteBook 840 G1 8GB Intel Core i5 SSD 128GB,175000,Used,HP,EliteBook 840 G1,Notebook,2014,Intel Core i5,8,128,ssd,,model: EliteBook 840 G1 (2014)
+3,Laptop Dell Latitude 7420 16GB Intel Core i5 SSD 512GB,610000,Used,Dell,Latitude 7420,Notebook,2021,Intel Core i5,16,512,ssd,,model: Latitude 7420 (2021)
+4,Laptop Lenovo ThinkPad T450 8GB Intel Core i5 HDD 320GB,150000,Used,Lenovo,ThinkPad T450,Notebook,2015,Intel Core i5,8,320,hdd,,description: 5th gen
+4,Laptop Dell Latitude 5421 16GB Intel Core i7 SSD 512GB,555000,Used,Dell,Latitude 5421,Notebook,2021,Intel Core i7,16,512,ssd,,"description: late 2021, 11th gen"
+4,Laptop HP EliteBook 840 G8 8GB Intel Core i7 SSD 256GB,450000,Used,HP,EliteBook 840 G8,Notebook,2021,Intel Core i7,8,256,ssd,,description: 11th generation
+4,Laptop HP EliteBook 840 G8 8GB Intel Core i5 SSD 256GB,385000,Used,HP,EliteBook 840 G8,Notebook,2021,Intel Core i5,8,256,ssd,,model: EliteBook 840 G8 (2021)
+4,Laptop Dell Latitude 7450 8GB Intel Core i5 SSD 500GB,200000,Used,Dell,Latitude E7450,Notebook,2015,Intel Core i5,8,512,ssd,,"model: Latitude E7450 (2015), 500 GB"
+4,Laptop HP EliteBook 840 G7 16GB Intel Core i5 SSD 256GB,420000,Used,HP,EliteBook 840 G7,Notebook,2020,Intel Core i5,16,256,ssd,,model: EliteBook 840 G7 (2020)
+4,Laptop Dell Latitude 3410 8GB Intel Core i3 SSD 256GB,250000,Used,Dell,Latitude 3410,Notebook,2020,Intel Core i3,8,256,ssd,,description: 10th generation
+4,Laptop Dell Latitude 11 3190 4GB Intel SSD 60GB,70000,Used,Dell,Latitude 3190,Notebook,2018,Intel Celeron / Pentium,4,64,hdd,,"model: Latitude 3190 (2018), 64 GB eMMC"
+4,Laptop Lenovo 16GB Intel Core I7 SSD 512GB,480000,Used,Lenovo,IdeaPad Y700-15ISK,Gaming,2016,Intel Core i7,16,512,ssd,dedicated,"description: Y700-15ISK, GTX 960M"
+4,Laptop HP 430 G4 8GB Intel Core i5 SSD 256GB,250000,Used,HP,ProBook 430 G4,Notebook,2017,Intel Core i5,8,256,ssd,,model: ProBook 430 G4 (2017)
+4,Laptop Dell Precision 5530 16GB Intel Core i7 SSD 512GB,600000,Used,Dell,Precision 5530,Workstation,2018,Intel Core i7,16,512,ssd,,description: 8th generation i7-8850H
+5,Laptop Dell Precision 5510 16GB Intel Core i7 SSD 512GB,430000,Used,Dell,Precision 5510,Workstation,2016,Intel Core i7,16,512,ssd,dedicated,"model: Precision 5510 (2016), Quadro M1000M"
+5,Laptop HP EliteBook X360 1030 G3 16GB Intel Core i7 SSD 512GB,520000,Used,HP,EliteBook x360 1030 G3,2-in-1,2018,Intel Core i7,16,512,ssd,,model: EliteBook x360 1030 G3 (2018)
+5,Laptop Dell Latitude 5320 16GB Intel Core I5 SSD 512GB,430000,Used,Dell,Latitude 5320,Notebook,2021,Intel Core i5,16,512,ssd,,description: 11th gen
+5,Laptop Microsoft Surface Go 3 8GB Intel Core i3 eMMC 128GB,150000,Used,Microsoft,Surface Go 3,2-in-1,2021,Intel Core i3,8,128,hdd,,"model: Surface Go 3 (2021), eMMC"
+5,Laptop Dell Latitude 7430 32GB Intel Core i7 SSD 512GB,680000,Used,Dell,Latitude 7430,Notebook,2022,Intel Core i7,32,512,ssd,,description: 12th generation
+5,Laptop Dell Latitude 14 3450 8GB Intel Core i5 HDD 750GB,150000,Used,Dell,Latitude 3450,Notebook,2015,Intel Core i5,8,750,hdd,,description: 5th generation
+5,Laptop Dell Latitude 5440 16GB Intel Core i7 SSD 512GB,720000,Used,Dell,Latitude 5440,Notebook,2023,Intel Core i7,16,512,ssd,,"description: 13th gen, 2023 model"
+5,Laptop HP EliteBook 840 G9 16GB Intel Core i7 SSD 512GB,700000,Used,HP,EliteBook 840 G9,Notebook,2022,Intel Core i7,16,512,ssd,,description: 12th gen
+5,Laptop Dell Precision 7760 96GB Intel Core I9 SSD 1T,1800000,Used,Dell,Precision 7760,Workstation,2021,Intel Core i9,96,1024,ssd,dedicated,"description: 11th gen, 6GB GPU"
+5,Laptop HP EliteBook 840 G8 16GB Intel Core i5 SSD 256GB,470000,Used,HP,EliteBook 840 G8,Notebook,2021,Intel Core i5,16,256,ssd,,description: 11th gen
+5,Laptop Dell Latitude E5540 8GB Intel Core I5 SSD 256GB,200000,Used,Dell,Latitude E5540,Notebook,2014,Intel Core i5,8,256,ssd,,model: Latitude E5540 (2014)
+6,Laptop Dell G3 17 3579 16GB Intel Core i5 SSD 256GB,645000,Used,Dell,G3 3590,Gaming,2019,Intel Core i5,16,256,ssd,dedicated,"description: i5-9300H (9th gen), Nvidia"
+6,Laptop Alienware m17 R5 32GB AMD Ryzen 9 SSD 1T,3000000,Used,Dell,Alienware m17 R5,Gaming,2022,AMD Ryzen 9,32,1024,ssd,dedicated,"model: m17 R5 (2022), RTX 3080"
+6,Laptop Microsoft Surface Pro 9 16GB Intel Core i7 SSD 256GB,1000000,Used,Microsoft,Surface Pro 9,2-in-1,2022,Intel Core i7,16,256,ssd,,description: 12th generation
+6,Laptop Lenovo ThinkPad X1 Carbon 8GB Intel Core i5 SSD 256GB,210000,Used,Lenovo,ThinkPad X1 Carbon Gen 5,Ultrabook,2017,Intel Core i5,8,256,ssd,,description: Gen 5 (2017)
+6,Laptop HP EliteBook 840 G8 16GB Intel Core i5 SSD 256GB,510000,Used,HP,EliteBook 840 G8,Notebook,2021,Intel Core i5,16,256,ssd,,description: 11th generation
+6,Laptop HP 14-ep0063 8GB AMD SSD 128GB,155000,Used,HP,HP 14,Notebook,2019,AMD Athlon / budget,8,128,ssd,,description: Athlon 300U (2019)
+6,Laptop Dell Precision M6800 16GB Intel Core i7 HDD 1T,300000,Used,Dell,Precision M6800,Workstation,2014,Intel Core i7,16,1024,hdd,,description: 4th gen
+6,Laptop Dell Latitude 14 7480 8GB Intel Core i7 SSD 256GB,265000,Used,Dell,Latitude 7480,Notebook,2017,Intel Core i7,8,256,ssd,,description: 7th gen
+6,Laptop Dell Latitude 5410 8GB Intel Core i5 SSD 256GB,300000,Used,Dell,Latitude 5410,Notebook,2020,Intel Core i5,8,256,ssd,,description: 10th gen
+6,Laptop HP EliteBook 845 G8 16GB AMD Ryzen 5 SSD 256GB,480000,Used,HP,EliteBook 845 G8,Notebook,2021,AMD Ryzen 5,16,256,ssd,,model: EliteBook 845 G8 (2021)
+6,Laptop HP EliteBook 840 G3 8GB Intel Core i5 SSD 256GB,270000,Used,HP,EliteBook 840 G3,Notebook,2016,Intel Core i5,8,256,ssd,,model: EliteBook 840 G3 (2016)

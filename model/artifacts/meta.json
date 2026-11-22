@@ -196,5 +196,18 @@
   ],
   "mae": 422365,
   "r2": 0.818,
-  "trained_on_rows": 2061
+  "trained_on_rows": 2061,
+  "market": {
+    "source": "jiji.ng used and refurbished laptop listings, November 2026",
+    "listings": 80,
+    "factor": 0.3958285457122065,
+    "range_ratio": [
+      0.7337855237260563,
+      1.5133825869343533
+    ],
+    "mae": 119966,
+    "median_error": 0.18961968248621847,
+    "r2": 0.687,
+    "uncalibrated_median_error": 1.5264323911382736
+  }
 }

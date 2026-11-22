@@ -305,6 +305,13 @@ def main() -> None:
     (ARTIFACTS / "meta.json").write_text(json.dumps(meta, indent=2))
     print(f"saved {len(final)} model file(s) and meta.json to {ARTIFACTS}")
 
+    from calibrate import calibrate
+
+    market = calibrate(ARTIFACTS)
+    print(f"calibrated to {market['listings']} Nigerian listings: factor {market['factor']:.3f}, "
+          f"median error {market['uncalibrated_median_error']:.0%} -> {market['median_error']:.1%}, "
+          f"MAE ₦{market['mae']:,}, 80% range {market['range_ratio'][0]:.2f}–{market['range_ratio'][1]:.2f}")
+
 
 if __name__ == "__main__":
     main()
